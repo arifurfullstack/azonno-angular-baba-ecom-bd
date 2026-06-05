@@ -5,9 +5,7 @@ export default () => ({
   prefix: process.env.PREFIX ?? null,
   hostname:
     process.env.API_BASE_URL ||
-    (process.env.PRODUCTION_BUILD === 'true'
-      ? 'https://api.chatbotmini.com'
-      : `http://localhost:${process.env.PORT || 3000}`),
+    `http://localhost:${process.env.PORT || 3000}`,
   port: parseInt(process.env.PORT, 10) || 3000,
   mongoCluster:
     process.env.MONGODB_URI ||
@@ -25,15 +23,13 @@ export default () => ({
 
   // CDN Api
   cdnUrlBase:
-    `${process.env.API_BASE_URL || (process.env.PRODUCTION_BUILD === 'true' ? 'https://api.chatbotmini.com' : 'http://localhost:3000')}/api`,
+    `${process.env.API_BASE_URL || 'http://localhost:3000'}/api`,
 
   // Build Script
   themeTargetPath: process.env.THEME_TARGET_PATH || 'c:/rif/azonnox/themex',
   apiBaseUrl:
     process.env.API_BASE_URL ||
-    (process.env.PRODUCTION_BUILD === 'true'
-      ? 'https://api.chatbotmini.com'
-      : 'http://localhost:3000'),
+    'http://localhost:3000',
 
   // Gmail Api
   gmail: process.env.GMAIL_SMTP_USER || 'saleecom.server@gmail.com',
