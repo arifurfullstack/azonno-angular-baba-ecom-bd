@@ -53,8 +53,10 @@ import { RouteProgressInterceptor } from './shared/components/route-progress/rou
     providers: [
         Title,
         Meta,
-        provideHttpClient(withInterceptors([authUserInterceptor])),
-        provideHttpClient(withFetch()),
+        provideHttpClient(
+          withInterceptors([authUserInterceptor]),
+          withFetch()
+        ),
         provideAnimationsAsync(),
         {provide: HTTP_INTERCEPTORS, useClass: RouteProgressInterceptor, multi: true}
     ],
