@@ -12,7 +12,7 @@ if (isBrowser) {
     apiBase = `${window.location.protocol}//api.${hostname}`;
   }
 } else {
-  apiBase = process.env['API_BASE_LINK'] || '';
+  apiBase = process.env['API_BASE_LINK'] || 'http://localhost:3000';
 }
 
 export const environment = {
