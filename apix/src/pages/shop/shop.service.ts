@@ -472,9 +472,16 @@ export class ShopService {
       hostname = hostname.split(':')[0];
 
       const domainRegex = new RegExp('^' + hostname + '(:[0-9]+)?/?$');
-      const shop = await this.shopModel.findOne({
+      let shop = await this.shopModel.findOne({
         $or: [{ domain: domainRegex }, { subDomain: domainRegex }],
       });
+
+      if (!shop) {
+        const count = await this.shopModel.countDocuments();
+        if (count === 1) {
+          shop = await this.shopModel.findOne({});
+        }
+      }
 
       if (!shop) {
         return {

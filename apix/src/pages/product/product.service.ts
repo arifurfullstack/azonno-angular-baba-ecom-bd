@@ -946,9 +946,16 @@ export class ProductService {
     select: string,
   ): Promise<any> {
     try {
-      const fShop = await this.shopModel
+      let fShop = await this.shopModel
         .findOne({ domain: domain })
         .select('_id');
+      if (!fShop) {
+        const count = await this.shopModel.countDocuments();
+        if (count === 1) {
+          fShop = await this.shopModel.findOne({}).select('_id');
+        }
+      }
+      if (!fShop) return null;
       return await this.productModel
         .findOne({ slug: slug, shop: fShop._id })
         .select(select);
@@ -960,9 +967,16 @@ export class ProductService {
 
   async getShopByDomainForPrerender(domain: string): Promise<any> {
     try {
-      const fShop = await this.shopModel
+      let fShop = await this.shopModel
         .findOne({ domain: domain })
         .select('_id');
+      if (!fShop) {
+        const count = await this.shopModel.countDocuments();
+        if (count === 1) {
+          fShop = await this.shopModel.findOne({}).select('_id');
+        }
+      }
+      if (!fShop) return null;
       return await this.shopInformationModel
         .findOne({ shop: fShop._id })
         .select('websiteName shortDescription logoPrimary');
