@@ -30,16 +30,27 @@ export function app(): express.Express {
     try {
       const host = req.headers.host || '';
       const cleanHost = host.replace('www.', '').split(':')[0];
-      const protocol = req.protocol;
+      const protocol = (cleanHost.includes('localhost') || cleanHost.includes('127.0.0.1')) ? 'http' : 'https';
       const apiBaseLink = process.env['API_BASE_LINK'] || `${protocol}://api.${cleanHost}`;
 
-      const apiResponse = await fetch(`${apiBaseLink}/api/shop/get-setting-by-domain?domain=${cleanHost}`);
-      if (apiResponse.ok) {
-        const json = await apiResponse.json();
-        if (json && json.success && json.data) {
-          res.json(json.data);
-          return;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1500);
+
+      try {
+        const apiResponse = await fetch(`${apiBaseLink}/api/shop/get-setting-by-domain?domain=${cleanHost}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (apiResponse.ok) {
+          const json = await apiResponse.json();
+          if (json && json.success && json.data) {
+            res.json(json.data);
+            return;
+          }
         }
+      } catch (fetchErr: any) {
+        clearTimeout(timeoutId);
+        console.warn('API fetch failed or timed out:', fetchErr.message);
       }
     } catch (e: any) {
       console.warn('Failed to load shop settings from API, falling back to local file:', e.message);
@@ -54,7 +65,26 @@ export function app(): express.Express {
       res.sendFile(localPath);
       return;
     } else {
-      res.status(404).json({ error: 'shop-settings.json not found' });
+      res.json({
+        shop: '',
+        themeColors: {
+          primary: '#4cac4d',
+          secondary: '#00c153',
+          tertiary: '#0778a8'
+        },
+        themeViewSettings: [
+          { type: 'headerViews', value: ['Header 1'] },
+          { type: 'brandViews', value: ['None'] },
+          { type: 'productViews', value: ['Tag'] },
+          { type: 'productCardViews', value: ['Product Card 1'] },
+          { type: 'bottomNavViews', value: ['Bottom Nav 1'] },
+          { type: 'footerViews', value: ['Footer 1'] },
+          { type: 'categoryViews', value: ['Category 1'] }
+        ],
+        pageViewSettings: [],
+        searchHints: 'laptop, mobile',
+        orderLanguage: 'en'
+      });
       return;
     }
   });

@@ -6,6 +6,7 @@ import { SettingService } from '../common/setting.service';
 import { GtmService } from './gtm.service';
 import { PixelService } from './pixel.service';
 import { ScriptLoaderService } from './script-loader.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -57,14 +58,29 @@ export class AppConfigService {
 
   private async checkForUpdates(): Promise<void> {
     try {
-      let url = `/shop-settings.json?v=${new Date().getTime()}`;
-      if (!isPlatformBrowser(this.platformId)) {
+      let newConfig: any;
+      if (isPlatformBrowser(this.platformId)) {
+        const cleanHost = window.location.hostname.replace('www.', '').split(':')[0];
+        const apiBase = environment.apiBaseLink;
+        try {
+          const apiResponse = await firstValueFrom(
+            this.http.get<any>(`${apiBase}/api/shop/get-setting-by-domain?domain=${cleanHost}`)
+          );
+          if (apiResponse && apiResponse.success && apiResponse.data) {
+            newConfig = apiResponse.data;
+          } else {
+            throw new Error('API returned success: false');
+          }
+        } catch (apiErr: any) {
+          console.warn('Failed to load settings directly from API, trying local route:', apiErr.message);
+          const url = `/shop-settings.json?v=${new Date().getTime()}`;
+          newConfig = await firstValueFrom(this.http.get(url));
+        }
+      } else {
         const port = process.env['PORT'] || '4220';
-        url = `http://localhost:${port}${url}`;
+        const url = `http://localhost:${port}/shop-settings.json?v=${new Date().getTime()}`;
+        newConfig = await firstValueFrom(this.http.get(url));
       }
-      const newConfig = await firstValueFrom(
-        this.http.get(url)
-      );
 
       if (
         !this.config ||
@@ -161,9 +177,19 @@ export class AppConfigService {
     // Fallback/Default mock data to prevent runtime crashes if config fails to load
     switch (field) {
       case 'themeViewSettings':
+        return [
+          { type: 'headerViews', value: ['Header 1'] },
+          { type: 'brandViews', value: ['None'] },
+          { type: 'productViews', value: ['Tag'] },
+          { type: 'productCardViews', value: ['Product Card 1'] },
+          { type: 'bottomNavViews', value: ['Bottom Nav 1'] },
+          { type: 'footerViews', value: ['Footer 1'] },
+          { type: 'categoryViews', value: ['Category 1'] }
+        ];
       case 'pageViewSettings':
-      case 'searchHints':
         return [];
+      case 'searchHints':
+        return 'laptop, mobile';
       case 'themeColors':
         return {
           primary: '#00a0db',
