@@ -457,6 +457,38 @@ export class ShopService {
     }
   }
 
+  async getSettingByDomain(domain: string): Promise<ResponsePayload> {
+    try {
+      if (!domain) {
+        return {
+          success: false,
+          message: 'Domain name is required',
+        } as ResponsePayload;
+      }
+      let hostname = domain.trim().toLowerCase();
+      if (hostname.startsWith('www.')) {
+        hostname = hostname.replace('www.', '');
+      }
+      hostname = hostname.split(':')[0];
+
+      const domainRegex = new RegExp('^' + hostname + '(:[0-9]+)?/?$');
+      const shop = await this.shopModel.findOne({
+        $or: [{ domain: domainRegex }, { subDomain: domainRegex }],
+      });
+
+      if (!shop) {
+        return {
+          success: false,
+          message: 'Shop not found for domain: ' + hostname,
+        } as ResponsePayload;
+      }
+
+      return await this.getSettingByShop(shop._id.toString());
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
   async versionUpdateByShop(shopId: string): Promise<ResponsePayload> {
     try {
       // Check Shop Availability

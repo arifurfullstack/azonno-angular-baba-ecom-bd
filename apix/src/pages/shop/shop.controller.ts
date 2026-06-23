@@ -160,6 +160,14 @@ export class ShopController {
   }
 
   @Version(VERSION_NEUTRAL)
+  @Get('/get-setting-by-domain')
+  async getSettingByDomain(
+    @Query('domain') domain: string,
+  ): Promise<ResponsePayload> {
+    return await this.shopService.getSettingByDomain(domain);
+  }
+
+  @Version(VERSION_NEUTRAL)
   @Get('/get-by-page/:pageName')
   @UsePipes(ValidationPipe)
   async getShopPageByPage(

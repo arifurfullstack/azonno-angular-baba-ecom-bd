@@ -26,15 +26,36 @@ export function app(): express.Express {
   // server.get('/api/**', (req, res) => { });
 
   // Serve shop-settings.json dynamically from external volume mount or fallback to local browser dist folder
-  server.get('/shop-settings.json', (req, res) => {
+  server.get('/shop-settings.json', async (req, res): Promise<void> => {
+    try {
+      const host = req.headers.host || '';
+      const cleanHost = host.replace('www.', '').split(':')[0];
+      const protocol = req.protocol;
+      const apiBaseLink = process.env['API_BASE_LINK'] || `${protocol}://api.${cleanHost}`;
+
+      const apiResponse = await fetch(`${apiBaseLink}/api/shop/get-setting-by-domain?domain=${cleanHost}`);
+      if (apiResponse.ok) {
+        const json = await apiResponse.json();
+        if (json && json.success && json.data) {
+          res.json(json.data);
+          return;
+        }
+      }
+    } catch (e: any) {
+      console.warn('Failed to load shop settings from API, falling back to local file:', e.message);
+    }
+
     const externalPath = join('/app', 'settings', 'shop-settings.json');
     const localPath = join(browserDistFolder, 'shop-settings.json');
     if (fs.existsSync(externalPath)) {
       res.sendFile(externalPath);
+      return;
     } else if (fs.existsSync(localPath)) {
       res.sendFile(localPath);
+      return;
     } else {
       res.status(404).json({ error: 'shop-settings.json not found' });
+      return;
     }
   });
 
