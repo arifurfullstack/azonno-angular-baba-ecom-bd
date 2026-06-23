@@ -16,15 +16,15 @@ Write-Host ""
 
 # Start API (NestJS) on port 3000
 Write-Host "[1/3] Starting API (NestJS) on port 3000..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location 'c:\rif\azonnox\apix'; Write-Host 'Starting API Server...' -ForegroundColor Green; npm run start:dev"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '.\apix'; Write-Host 'Starting API Server...' -ForegroundColor Green; npm.cmd run start:dev"
 
 # Start Admin (Angular) on port 4200
 Write-Host "[2/3] Starting Admin (Angular) on port 4200..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location 'c:\rif\azonnox\adminx'; Write-Host 'Starting Admin Panel...' -ForegroundColor Green; npx ng serve --port 4200"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '.\adminx'; Write-Host 'Starting Admin Panel...' -ForegroundColor Green; npm.cmd run start -- --port 4200"
 
 # Start Theme (Angular SSR) on port 4220
 Write-Host "[3/3] Starting Theme (Angular SSR) on port 4220..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location 'c:\rif\azonnox\themex'; Write-Host 'Starting Theme (Storefront)...' -ForegroundColor Green; npx ng serve --port 4220"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '.\themex'; Write-Host 'Starting Theme (Storefront)...' -ForegroundColor Green; npm.cmd run start -- --port 4220"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green

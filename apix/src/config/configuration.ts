@@ -39,4 +39,5 @@ export default () => ({
   googleRefreshToken: process.env.GOOGLE_REFRESH_TOKEN || '',
 
   vendorSecretKey: process.env.JWT_PRIVATE_KEY_VENDOR_SECRET,
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200',
 });

@@ -830,9 +830,8 @@ export class OrderService {
               username: fMethod.username,
               password: fMethod.password,
               production: fMethod.production,
-              callbackURL: fMethod.production
-                ? 'https://api-client.saleecom.com/api/order/callback-bkash-payment'
-                : 'http://localhost:3000/api/order/callback-bkash-payment',
+              callbackURL: `${this.configService.get<string>('apiBaseUrl')}/api/order/callback-bkash-payment`,
+
               amount:
                 finalOrderData.advancePayment &&
                 finalOrderData.advancePayment > 0
@@ -993,9 +992,8 @@ export class OrderService {
         //     amount: totalAmount,
         //     currency: fSetting?.currency?.code,
         //     orderId: saveData._id.toString(),
-        //     baseUrl: fStripeMethod.production
-        //       ? 'https://api-client.saleecom.com'
-        //       : 'http://localhost:3000',
+        //     baseUrl: this.configService.get<string>('apiBaseUrl'),
+
         //   };
         //
         //   return await this.payWithStripe(stripeConfig);
@@ -1053,9 +1051,7 @@ export class OrderService {
               fMethodSSL.production ? 'securepay' : 'sandbox'
             }.sslcommerz.com`;
 
-            const callBackBaseUrlSsl = fMethodSSL.production
-              ? 'https://api-client.saleecom.com'
-              : 'http://localhost:3000';
+            const callBackBaseUrlSsl = this.configService.get<string>('apiBaseUrl');
 
             const sslCommerzInit: SslCommerzInit = {
               baseUrl: sslBaseURL,
@@ -4163,13 +4159,20 @@ export class OrderService {
     status: string,
   ): Promise<any> {
     try {
-      const redirectUrlBase = 'http://localhost:4200';
-
       // Fetch Order Data
       const fOrder: any = await this.orderModel.findOne({
         paymentApiType: 'SSl Commerz',
         _id: tran_id,
       });
+
+      const fShopDomain = await this.shopModel
+        .findById(fOrder?.shop)
+        .select('domain subDomain');
+
+      const redirectUrlBase =
+        process.env.PRODUCTION_BUILD === 'true'
+          ? `https://${fShopDomain.domain}`
+          : 'http://localhost:4200';
 
       // Setting Data
       const fSetting = await this.settingModel

@@ -6,6 +6,10 @@ import { json, urlencoded } from 'express';
 import { join } from 'path';
 import * as express from 'express';
 import * as dns from 'dns';
+import * as dotenv from 'dotenv';
+
+// Load local environment variables
+dotenv.config();
 
 // Force Google DNS for SRV record resolution (fixes ISP DNS that doesn't support SRV)
 dns.setServers(['8.8.8.8', '8.8.4.4']);
