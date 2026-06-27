@@ -74,20 +74,24 @@ export class ProductController {
   @Get('/get-by-slug/:slug')
   async getProductBySlug(
     @Param('slug') slug: string,
-    @Query('shop', MongoIdValidationPipe) shop: string,
+    @Query('shop') shop: string,
     @Query('select') select: string,
+    @Req() req: any,
   ): Promise<ResponsePayload> {
-    return await this.productService.getProductBySlug(shop, slug, select);
+    const domain = req.headers?.host || req.headers?.referer;
+    return await this.productService.getProductBySlug(shop, slug, select, domain);
   }
 
   @Version(VERSION_NEUTRAL)
   @Get('/get-product-by-id/:id')
   async getProductByUserById(
     @Param('id') id: string,
-    @Query('shop', MongoIdValidationPipe) shop: string,
+    @Query('shop') shop: string,
     @Query('select') select: string,
+    @Req() req: any,
   ): Promise<ResponsePayload> {
-    return await this.productService.getProductByUserById(shop, id, select);
+    const domain = req.headers?.host || req.headers?.referer;
+    return await this.productService.getProductByUserById(shop, id, select, domain);
   }
 
   @Version(VERSION_NEUTRAL)

@@ -915,10 +915,29 @@ export class ProductService {
     shop: string,
     slug: string,
     select: string,
+    domain?: string,
   ): Promise<ResponsePayload> {
     try {
+      let activeShopId = shop;
+      if (!activeShopId || activeShopId === 'undefined' || !Types.ObjectId.isValid(activeShopId)) {
+        if (domain) {
+          const cleanDomain = domain.replace(/^https?:\/\//, '').split(':')[0].replace('www.', '');
+          const fShop = await this.shopModel.findOne({ domain: cleanDomain }).select('_id');
+          if (fShop) activeShopId = fShop._id.toString();
+        }
+        if (!activeShopId || activeShopId === 'undefined') {
+          const defaultShop = await this.shopModel.findOne({}).select('_id');
+          if (defaultShop) activeShopId = defaultShop._id.toString();
+        }
+      }
+
+      const query: any = { slug: slug };
+      if (activeShopId && Types.ObjectId.isValid(activeShopId)) {
+        query.shop = activeShopId;
+      }
+
       const data = await this.productModel
-        .findOne({ slug: slug, shop: shop })
+        .findOne(query)
         .select(select);
 
       // Increment view count
@@ -990,10 +1009,29 @@ export class ProductService {
     shop: string,
     id: string,
     select: string,
+    domain?: string,
   ): Promise<ResponsePayload> {
     try {
+      let activeShopId = shop;
+      if (!activeShopId || activeShopId === 'undefined' || !Types.ObjectId.isValid(activeShopId)) {
+        if (domain) {
+          const cleanDomain = domain.replace(/^https?:\/\//, '').split(':')[0].replace('www.', '');
+          const fShop = await this.shopModel.findOne({ domain: cleanDomain }).select('_id');
+          if (fShop) activeShopId = fShop._id.toString();
+        }
+        if (!activeShopId || activeShopId === 'undefined') {
+          const defaultShop = await this.shopModel.findOne({}).select('_id');
+          if (defaultShop) activeShopId = defaultShop._id.toString();
+        }
+      }
+
+      const query: any = { _id: id };
+      if (activeShopId && Types.ObjectId.isValid(activeShopId)) {
+        query.shop = activeShopId;
+      }
+
       const data = await this.productModel
-        .findOne({ _id: id, shop: shop })
+        .findOne(query)
         .select(select);
 
       // Increment view count

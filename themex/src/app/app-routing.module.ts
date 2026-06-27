@@ -38,14 +38,14 @@ const baseRoutes: Routes = [
     loadComponent: () => import('./pages/products/products.component').then(m => m.ProductsComponent),
     data: {preloadAfter: ['/']},
   },
-  // {
-  //   path: 'product-details/:slug',
-  //   loadComponent: () =>
-  //     import('./pages/product-details/product-details.component').then(
-  //       (m) => m.ProductDetailsComponent
-  //     ),
-  //   data: {preloadAfter: ['/']},
-  // },
+  {
+    path: 'product-details/:slug',
+    loadComponent: () =>
+      import('./pages/product-details/product-details.component').then(
+        (m) => m.ProductDetailsComponent
+      ),
+    data: {preloadAfter: ['/']},
+  },
 
   {
     path: 'product-categories',
