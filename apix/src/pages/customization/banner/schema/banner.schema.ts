@@ -52,3 +52,6 @@ export const BannerSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+BannerSchema.index({ shop: 1, type: 1, status: 1 });
+

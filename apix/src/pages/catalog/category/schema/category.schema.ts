@@ -81,3 +81,7 @@ export const CategorySchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+CategorySchema.index({ shop: 1, status: 1, priority: 1, serial: 1 });
+CategorySchema.index({ shop: 1, slug: 1 });
+

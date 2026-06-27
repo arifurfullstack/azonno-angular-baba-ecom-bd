@@ -1,5 +1,5 @@
 import {APP_INITIALIZER, NgModule} from '@angular/core';
-import {BrowserModule, provideClientHydration, withNoHttpTransferCache} from '@angular/platform-browser';
+import {BrowserModule, provideClientHydration} from '@angular/platform-browser';
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
@@ -65,7 +65,7 @@ export function initConfig(configService: AppConfigService) {
       deps: [AppConfigService],
       multi: true
     },
-    provideClientHydration(withNoHttpTransferCache()),
+    provideClientHydration(),
     provideAnimationsAsync(),
     provideHttpClient(
       withFetch(),
