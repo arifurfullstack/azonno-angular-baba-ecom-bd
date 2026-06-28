@@ -10,6 +10,7 @@ import {Header1Component} from './shared/components/headers/header-1/header-1.co
 import {FooterComponent} from './shared/components/core/footer/footer.component';
 import {BottomNavbarComponent} from './shared/components/core/footer/bottom-navbar/bottom-navbar.component';
 import {authUserInterceptor} from './auth-interceptor/auth-user-interceptor';
+import {ssrApiRedirectInterceptor} from './auth-interceptor/ssr-api-redirect.interceptor';
 import {provideLottieOptions} from 'ngx-lottie';
 import {Header2Component} from './shared/components/headers/header-2/header-2.component';
 import {ArrayToSingleImagePipe} from "./shared/pipes/array-to-single-image.pipe";
@@ -69,7 +70,7 @@ export function initConfig(configService: AppConfigService) {
     provideAnimationsAsync(),
     provideHttpClient(
       withFetch(),
-      withInterceptors([authUserInterceptor])
+      withInterceptors([ssrApiRedirectInterceptor, authUserInterceptor])
     ),
     provideImgixLoader(environment.ftpPrefixPath),
     provideLottieOptions({

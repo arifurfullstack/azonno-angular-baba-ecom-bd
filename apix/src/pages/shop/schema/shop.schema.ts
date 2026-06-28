@@ -287,3 +287,7 @@ export const ShopSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+ShopSchema.index({ domain: 1 });
+ShopSchema.index({ subDomain: 1 });
+

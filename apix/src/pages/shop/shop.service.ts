@@ -471,10 +471,17 @@ export class ShopService {
       }
       hostname = hostname.split(':')[0];
 
-      const domainRegex = new RegExp('^' + hostname + '(:[0-9]+)?/?$');
+      // Try fast indexed exact match first
       let shop = await this.shopModel.findOne({
-        $or: [{ domain: domainRegex }, { subDomain: domainRegex }],
+        $or: [{ domain: hostname }, { subDomain: hostname }],
       });
+
+      if (!shop) {
+        const domainRegex = new RegExp('^' + hostname + '(:[0-9]+)?/?$');
+        shop = await this.shopModel.findOne({
+          $or: [{ domain: domainRegex }, { subDomain: domainRegex }],
+        });
+      }
 
       if (!shop) {
         const count = await this.shopModel.countDocuments();

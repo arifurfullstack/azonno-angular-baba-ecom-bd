@@ -48,7 +48,11 @@ export class AppConfigService {
       if (storedConfig) {
         this.config = JSON.parse(storedConfig);
         this.configSubject.next(this.config);
-        // console.log("✅ Loaded theme from LocalStorage:", this.config);
+        // Run background update check to avoid blocking instant application boot
+        this.checkForUpdates().catch((err) =>
+          console.warn('Background config update check failed:', err)
+        );
+        return;
       }
     }
 
