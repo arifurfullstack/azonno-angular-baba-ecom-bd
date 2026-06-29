@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, VersioningType } from '@nestjs/common';
-import helmet from 'helmet';
+import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
 import { json, urlencoded } from 'express';
 import { join } from 'path';
 import * as express from 'express';
@@ -14,9 +14,25 @@ dotenv.config();
 // Force Google DNS for SRV record resolution (fixes ISP DNS that doesn't support SRV)
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
-async function bootstrap() {
-  const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
+/**
+ * Create and configure the NestJS application.
+ * Can be called with an existing Express instance (for unified server embedding)
+ * or without one (for standalone mode).
+ */
+export async function createNestApp(existingExpressApp?: express.Express): Promise<NestExpressApplication> {
+  const logger = new Logger('NestAPI');
+
+  let app: NestExpressApplication;
+  if (existingExpressApp) {
+    // Embedded mode: mount NestJS onto existing Express app
+    const adapter = new ExpressAdapter(existingExpressApp);
+    app = await NestFactory.create<NestExpressApplication>(AppModule, adapter, {
+      logger: ['error', 'warn', 'log'],
+    });
+  } else {
+    // Standalone mode
+    app = await NestFactory.create<NestExpressApplication>(AppModule);
+  }
 
   // Enable CORS securely
   app.enableCors({
@@ -49,7 +65,6 @@ async function bootstrap() {
   }
 
   // Log all requests
-  // Log all requests
   app.use((req, res, next) => {
     logger.log(
       `Request: ${req.method} ${req.url} from ${req.headers['x-forwarded-for'] || req.socket.remoteAddress}`,
@@ -57,8 +72,26 @@ async function bootstrap() {
     next();
   });
 
+  return app;
+}
+
+/**
+ * Standalone bootstrap — used when running `npm run start:dev` in apix/ directly.
+ * Skipped when imported by the unified server.
+ */
+async function bootstrap() {
+  const logger = new Logger('Bootstrap');
+  const app = await createNestApp();
+
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  logger.log(`Application is running on port ${port}`);
+  logger.log(`Standalone API is running on port ${port}`);
 }
-bootstrap();
+
+// Only run standalone bootstrap if this file is the main entry point
+// (not when imported by the unified server)
+const isMainModule = require.main === module ||
+  (typeof __filename !== 'undefined' && process.argv[1] === __filename);
+if (isMainModule) {
+  bootstrap();
+}

@@ -9,11 +9,8 @@ if (isBrowser) {
     apiBase = (window as any).__env.apiBaseLink;
     adminDomain = (window as any).__env.adminDomain || hostname;
   } else {
-    if (hostname.startsWith('admin.')) {
-      apiBase = `${window.location.protocol}//${hostname.replace('admin.', 'api.')}`;
-    } else {
-      apiBase = `${window.location.protocol}//api.${hostname}`;
-    }
+    // Same-origin API: domain.com/api (no subdomain needed)
+    apiBase = window.location.origin;
   }
 }
 

@@ -1,11 +1,11 @@
 export const environment = {
   production: false,
   //
-  apiBaseLink: 'http://localhost:3000',
-  ftpBaseLink: 'http://localhost:3000',
+  apiBaseLink: 'http://localhost:4220',
+  ftpBaseLink: 'http://localhost:4220',
 
 
-  ftpPrefixPath: 'http://localhost:3000/api/upload/images',
+  ftpPrefixPath: 'http://localhost:4220/api/upload/images',
   ftpPrefix: '',
   userBaseUrl: '/my-account',
   userLoginUrl: 'login',

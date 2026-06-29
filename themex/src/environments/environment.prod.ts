@@ -5,14 +5,10 @@ if (isBrowser) {
   if ((window as any).__env?.apiBaseLink) {
     apiBase = (window as any).__env.apiBaseLink;
   } else {
-    let hostname = window.location.hostname;
-    if (hostname.startsWith('www.')) {
-      hostname = hostname.replace('www.', '');
-    }
-    apiBase = `${window.location.protocol}//api.${hostname}`;
+    apiBase = window.location.origin;
   }
 } else {
-  apiBase = process.env['API_BASE_LINK'] || 'http://localhost:3000';
+  apiBase = process.env['API_BASE_LINK'] || 'http://localhost:4220';
 }
 
 export const environment = {

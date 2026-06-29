@@ -2,14 +2,14 @@ export const environment = {
   production: false,
   name: 'Admin',
   domain: 'admin.azonno.com',
-  baseLink: 'http://localhost:3000',
+  baseLink: 'http://localhost:4220',
   paymentBaseLink: 'https://azonno.com',
 
-  apiBaseLink: 'http://localhost:3000',
-  ftpBaseLink: 'http://localhost:3000',
+  apiBaseLink: 'http://localhost:4220',
+  ftpBaseLink: 'http://localhost:4220',
 
 
-  ftpPrefixPath: 'http://localhost:3000/api/upload/images',
+  ftpPrefixPath: 'http://localhost:4220/api/upload/images',
   apiBaseLinkSaleecom: 'http://localhost:3001',
   ftpPrefix: '/api',
   userLoginUrl: 'login',
