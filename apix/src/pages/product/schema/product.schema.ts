@@ -393,5 +393,8 @@ export const ProductSchema = new mongoose.Schema(
 
 ProductSchema.index({ shop: 1, slug: 1 });
 ProductSchema.index({ shop: 1, 'category._id': 1, status: 1 });
+ProductSchema.index({ shop: 1, 'subCategory._id': 1, status: 1 });
+ProductSchema.index({ shop: 1, 'tags._id': 1, status: 1 });
 ProductSchema.index({ shop: 1, status: 1, createdAt: -1 });
+
 

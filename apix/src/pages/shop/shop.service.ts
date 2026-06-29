@@ -55,6 +55,7 @@ const ObjectId = Types.ObjectId;
 @Injectable()
 export class ShopService {
   private logger = new Logger(ShopService.name);
+  private settingCache = new Map<string, { data: ResponsePayload; timestamp: number }>();
 
   constructor(
     @InjectModel('Shop')
@@ -470,6 +471,12 @@ export class ShopService {
       }
       hostname = hostname.split(':')[0];
 
+      const cacheKey = `domain:${hostname}`;
+      const cached = this.settingCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < 60000) {
+        return cached.data;
+      }
+
       // Try fast indexed exact match first
       let shop = await this.shopModel.findOne({
         $or: [{ domain: hostname }, { subDomain: hostname }],
@@ -496,7 +503,11 @@ export class ShopService {
         } as ResponsePayload;
       }
 
-      return await this.getSettingByShop(shop._id.toString());
+      const result = await this.getSettingByShop(shop._id.toString());
+      if (result && result.success) {
+        this.settingCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      }
+      return result;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

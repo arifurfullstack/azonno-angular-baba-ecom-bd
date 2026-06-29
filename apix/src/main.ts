@@ -8,6 +8,8 @@ import * as express from 'express';
 import * as dns from 'dns';
 import * as dotenv from 'dotenv';
 
+import * as compression from 'compression';
+
 // Load local environment variables
 dotenv.config();
 
@@ -37,6 +39,8 @@ export async function createNestApp(existingExpressApp?: express.Express): Promi
     // Standalone mode
     app = await NestFactory.create<NestExpressApplication>(AppModule);
   }
+
+  app.use(compression());
 
   // Enable CORS securely
   app.enableCors({

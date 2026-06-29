@@ -8,12 +8,15 @@ import * as dotenv from 'dotenv';
 import fs from 'node:fs';
 import http from 'node:http';
 
+import compression from 'compression';
+
 // Load environment variables
 dotenv.config();
 
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
   const server = express();
+  server.use(compression());
   const serverDistFolder = dirname(fileURLToPath(import.meta.url));
   const browserDistFolder = resolve(serverDistFolder, '../browser');
   const indexHtml = join(serverDistFolder, 'index.server.html');
