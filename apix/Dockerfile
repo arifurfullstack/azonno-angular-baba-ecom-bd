@@ -13,8 +13,8 @@ ENV NODE_ENV=production
 
 COPY package*.json ./
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 RUN mkdir -p upload/static
-RUN npm ci --only=production --legacy-peer-deps
 
 EXPOSE 3000
 ENV PORT=3000
