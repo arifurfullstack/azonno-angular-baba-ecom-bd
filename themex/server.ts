@@ -58,7 +58,18 @@ export function app(): express.Express {
   if (adminDistFolder) {
     server.use('/admin', express.static(adminDistFolder, { maxAge: '1y' }));
     server.get('/admin*', (req, res) => {
-      res.sendFile(join(adminDistFolder, 'index.html'));
+      const isLocal = (req.headers.host || '').includes('localhost') || (req.headers.host || '').includes('127.0.0.1');
+      const protocol = isLocal ? 'http' : (req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http');
+      const apiBaseLink = process.env['API_BASE_LINK'] || `${protocol}://${req.headers.host}`;
+      const envScript = `<script>window.__env = { apiBaseLink: '${apiBaseLink}' };</script>`;
+      
+      try {
+        const html = fs.readFileSync(join(adminDistFolder, 'index.html'), 'utf-8');
+        const modifiedHtml = html.replace('</head>', `${envScript}</head>`);
+        res.send(modifiedHtml);
+      } catch (e) {
+        res.sendFile(join(adminDistFolder, 'index.html'));
+      }
     });
   }
 
