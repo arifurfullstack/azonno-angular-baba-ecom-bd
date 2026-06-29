@@ -1,6 +1,6 @@
-# Dockerfile for Frontend Platform (Storefront + Admin Panel on playgroundx.live)
 FROM node:20-alpine AS builder
 WORKDIR /app
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # 1. Build Admin Panel (adminx)
 COPY adminx/package*.json ./adminx/
