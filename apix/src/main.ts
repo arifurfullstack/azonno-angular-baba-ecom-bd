@@ -11,8 +11,12 @@ import * as dotenv from 'dotenv';
 // Load local environment variables
 dotenv.config();
 
-// Force Google DNS for SRV record resolution (fixes ISP DNS that doesn't support SRV)
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+// Force Google DNS for SRV record resolution if supported
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch (e) {
+  // Ignore in environments where DNS modification is restricted
+}
 
 /**
  * Create and configure the NestJS application.
@@ -59,10 +63,9 @@ export async function createNestApp(existingExpressApp?: express.Express): Promi
     express.static(join(__dirname, '..', 'upload/static')),
   );
 
-  // Global prefix for API routes
-  if (process.env.PREFIX) {
-    app.setGlobalPrefix(process.env.PREFIX);
-  }
+  // Global prefix for API routes (default to 'api')
+  const prefix = process.env.PREFIX || 'api';
+  app.setGlobalPrefix(prefix);
 
   // Log all requests
   app.use((req, res, next) => {
