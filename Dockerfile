@@ -34,6 +34,7 @@ COPY package.json start-unified.js ./
 # Copy built apix
 COPY --from=builder /app/apix/package*.json ./apix/
 COPY --from=builder /app/apix/dist ./apix/dist
+COPY --from=builder /app/apix/upload ./apix/upload
 RUN cd apix && npm ci --only=production --legacy-peer-deps
 
 # Copy built adminx static files
