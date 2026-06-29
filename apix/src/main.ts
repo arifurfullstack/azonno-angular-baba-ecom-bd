@@ -67,6 +67,12 @@ export async function createNestApp(existingExpressApp?: express.Express): Promi
   const prefix = process.env.PREFIX || 'api';
   app.setGlobalPrefix(prefix);
 
+  // Root health check endpoint (outside global prefix)
+  const expressInstance = app.getHttpAdapter().getInstance();
+  expressInstance.get('/', (req: any, res: any) => {
+    res.json({ status: 'online', service: 'Azonnox API Server' });
+  });
+
   // Log all requests
   app.use((req, res, next) => {
     logger.log(
