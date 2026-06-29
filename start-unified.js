@@ -14,6 +14,7 @@ function startApiProcess() {
   
   apiProcess = fork(apiPath, [], {
     cwd: path.join(__dirname, 'apix'),
+    stdio: 'inherit',
     env: { ...process.env, PORT: process.env.INTERNAL_API_PORT || '3000' }
   });
 
@@ -36,6 +37,7 @@ function startThemeProcess() {
   
   themeProcess = fork(themePath, [], {
     cwd: path.join(__dirname, 'themex'),
+    stdio: 'inherit',
     env: {
       ...process.env,
       PORT: process.env.PORT || '4220',
