@@ -20,6 +20,7 @@ export function app(): express.Express {
 
   const commonEngine = new CommonEngine();
 
+  server.set('trust proxy', true);
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
 
@@ -133,7 +134,9 @@ export function app(): express.Express {
 
   // All regular routes use the Angular engine
   server.get('**', (req, res, next) => {
-    const { protocol, originalUrl, baseUrl, headers } = req;
+    const { originalUrl, baseUrl, headers } = req;
+    const isLocal = (headers.host || '').includes('localhost') || (headers.host || '').includes('127.0.0.1');
+    const protocol = isLocal ? 'http' : (req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http');
 
     commonEngine
       .render({
