@@ -93,7 +93,7 @@ export class SupportService {
         },
       }));
 
-      const d = await this.supportModel.bulkWrite(bulkOps);
+      const d = await this.supportModel.bulkWrite(bulkOps as any);
       // Convert the values to a string array
       const dataArr = Object.values(d.upsertedIds);
 

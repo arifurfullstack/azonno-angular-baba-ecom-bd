@@ -327,9 +327,8 @@ export class ShopService {
       }
 
       if (needData) {
-        const fromShop = await this.shopModel.findOne({
-          domain: cloneWebUrl ?? 'gadgetshob.saleecom.shop',
-        });
+        const query = cloneWebUrl ? { domain: cloneWebUrl } : (process.env.DEFAULT_TEMPLATE_DOMAIN ? { domain: process.env.DEFAULT_TEMPLATE_DOMAIN } : {});
+        const fromShop = await this.shopModel.findOne(query);
         if (fromShop) {
           const data: any = {
             fromShop: fromShop._id,

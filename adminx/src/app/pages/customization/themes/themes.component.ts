@@ -1,20 +1,37 @@
-import {Component, inject, ViewChild} from '@angular/core';
+import {Component, inject, OnInit, ViewChild} from '@angular/core';
 import {ConfirmDialogComponent} from "../../../shared/components/ui/confirm-dialog/confirm-dialog.component";
 import {MatDialog} from "@angular/material/dialog";
 import {NgForm} from "@angular/forms";
+import {ShopInformationService} from "../../../services/common/shop-information.service";
 
 @Component({
   selector: 'app-themes',
   templateUrl: './themes.component.html',
   styleUrl: './themes.component.scss'
 })
-export class ThemesComponent {
+export class ThemesComponent implements OnInit {
   searchQuery = null;
+  protected shopInformation: any;
 
   // Decorator
   @ViewChild('searchForm', {static: true}) private searchForm: NgForm;
   private readonly dialog = inject(MatDialog);
+  private readonly shopInformationService = inject(ShopInformationService);
 
+  ngOnInit(): void {
+    this.getShopInformation();
+  }
+
+  private getShopInformation() {
+    this.shopInformationService.getShopInformation().subscribe({
+      next: (res) => {
+        this.shopInformation = res.fShopDomain;
+      },
+      error: (err) => {
+        console.log(err);
+      }
+    });
+  }
 
   /**
    * COMPONENT DIALOG VIEW

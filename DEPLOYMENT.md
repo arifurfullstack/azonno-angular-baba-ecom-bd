@@ -60,9 +60,13 @@ Point your single domain to your VPS IP address. In your domain registrar (Cloud
    * Add your main domain: `yourdomain.com` (and `www.yourdomain.com` if using).
    * Set Container Port to `4220`.
    * Enable **HTTPS / SSL** (Dokploy handles automatic Let's Encrypt SSL certificates!).
-6. Click **Deploy**.
+6. Go to the **Volumes** tab (Laravel-Style Permanent Media Storage):
+   * Add a new **Bind Mount Volume**:
+   * **Host Path**: `/var/lib/azonnox/upload` *(Stores files permanently on server disk)*
+   * **Mount Path (Container)**: `/app/apix/upload`
+7. Click **Deploy**.
 
 ---
 
 ## 🎉 Done!
-Dokploy will monitor your GitHub repository. Whenever you push code to GitHub, Dokploy will automatically build the unified container and deploy your live website!
+Dokploy will monitor your GitHub repository. Whenever you push code to GitHub, Dokploy will automatically build the unified container and deploy your live website! All uploaded media files will remain permanently saved on your host server disk!

@@ -28,7 +28,7 @@
     <div class="right">
       <div class="button-area"  >
 <!--        <a class="demo" href="/assets/page/demo-image.png" target="_blank">View Demo</a>-->
-        <a class="demo" href="https://gadgetshob.saleecom.shop/offer/apple-20w-usb-c-power-adapter" target="_blank">View Demo</a>
+        <a class="demo" [attr.href]="'//' + (shopInformation?.domain || shopInformation?.subDomain || '')" target="_blank">View Demo</a>
       </div>
     </div> <!-- END! right -->
 

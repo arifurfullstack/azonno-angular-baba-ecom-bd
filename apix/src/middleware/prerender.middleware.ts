@@ -34,7 +34,7 @@ export class PrerenderMiddleware implements NestMiddleware {
     console.log('isCrawler', isCrawler);
     console.log('req.path', req.path);
 
-    // হোমপেজের জন্য (URL: https://gadgetshob.saleecom.shop/)
+    // For Homepage
     if (
       isCrawler &&
       (req.path === '/api' || req.path === '/api/' || req.path === '')
