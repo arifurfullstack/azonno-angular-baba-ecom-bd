@@ -1,0 +1,32 @@
+# Dockerfile for Frontend Platform (Storefront + Admin Panel on playgroundx.live)
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# 1. Build Admin Panel (adminx)
+COPY adminx/package*.json ./adminx/
+RUN cd adminx && npm ci --legacy-peer-deps
+COPY adminx/ ./adminx/
+RUN cd adminx && npm run build
+
+# 2. Build Storefront Theme (themex)
+COPY themex/package*.json ./themex/
+RUN cd themex && npm ci --legacy-peer-deps
+COPY themex/ ./themex/
+RUN cd themex && npm run build
+
+# Stage 2: Runtime
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Copy built artifacts
+COPY package.json ./
+COPY themex/package*.json ./themex/
+COPY --from=builder /app/themex/dist ./themex/dist
+COPY --from=builder /app/adminx/dist ./adminx/dist
+RUN cd themex && npm ci --only=production --legacy-peer-deps
+
+EXPOSE 4220
+ENV PORT=4220
+
+CMD ["node", "themex/dist/angular-ui/server/server.mjs"]
