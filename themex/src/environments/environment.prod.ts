@@ -8,7 +8,8 @@ if (isBrowser) {
     apiBase = window.location.origin;
   }
 } else {
-  apiBase = process.env['API_BASE_LINK'] || 'http://localhost:4220';
+  const internalPort = process.env['INTERNAL_API_PORT'] || '3000';
+  apiBase = process.env['INTERNAL_API_URL'] || `http://127.0.0.1:${internalPort}`;
 }
 
 export const environment = {
@@ -22,3 +23,4 @@ export const environment = {
   storageSecret: 'SOFT_ECOM_2021_IT_1998',
   VERSION: 1,
 };
+

@@ -78,14 +78,14 @@ export function app(): express.Express {
     try {
       const host = req.headers.host || '';
       const cleanHost = host.replace('www.', '').split(':')[0];
-      const protocol = (cleanHost.includes('localhost') || cleanHost.includes('127.0.0.1')) ? 'http' : 'https';
-      const apiBaseLink = process.env['API_BASE_LINK'] || `${protocol}://${cleanHost}`;
+      const internalApiPort = process.env['INTERNAL_API_PORT'] || process.env['PORT_API'] || 3000;
+      const internalApiUrl = process.env['INTERNAL_API_URL'] || `http://127.0.0.1:${internalApiPort}`;
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 1500);
 
       try {
-        const apiResponse = await fetch(`${apiBaseLink}/api/shop/get-setting-by-domain?domain=${cleanHost}`, {
+        const apiResponse = await fetch(`${internalApiUrl}/api/shop/get-setting-by-domain?domain=${cleanHost}`, {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -140,7 +140,7 @@ export function app(): express.Express {
   // Serve static files from /browser
   server.get('**', express.static(browserDistFolder, {
     maxAge: '1y',
-    index: 'index.html',
+    index: false,
   }));
 
   // All regular routes use the Angular engine
