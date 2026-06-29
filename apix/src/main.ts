@@ -91,10 +91,7 @@ async function bootstrap() {
   logger.log(`Standalone API is running on port ${port}`);
 }
 
-// Only run standalone bootstrap if this file is the main entry point
-// (not when imported by the unified server)
-const isMainModule = require.main === module ||
-  (typeof __filename !== 'undefined' && process.argv[1] === __filename);
-if (isMainModule) {
-  bootstrap();
-}
+bootstrap().catch((err) => {
+  console.error('Fatal error during NestJS bootstrap:', err);
+  process.exit(1);
+});
