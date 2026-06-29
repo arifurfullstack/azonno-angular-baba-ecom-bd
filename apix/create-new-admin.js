@@ -24,36 +24,35 @@ async function createAdmin() {
     console.log('[OK] Connected to MongoDB Atlas');
     const db = client.db();
 
-    // Find active shop
     const shop = await db.collection('shops').findOne({ status: 'active' });
-    if (!shop) {
-      console.error('[ERROR] No active shop found.');
-      return;
-    }
-
-    const existing = await db.collection('vendors').findOne({
-      $or: [{ username: NEW_ADMIN.username }, { email: NEW_ADMIN.email }]
-    });
-
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(NEW_ADMIN.password, salt);
+    const hashedPassword = await bcrypt.hash('admin12345', salt);
     const now = new Date();
-    const dateString = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
 
+    // 1. Reset original admin password to admin12345
+    await db.collection('vendors').updateOne(
+      { username: 'admin' },
+      { $set: { password: hashedPassword, updatedAt: now } }
+    );
+    console.log('[OK] Reset password for admin to admin12345');
+
+    // 2. Reset admin2 password to admin12345
+    const existingAdmin2 = await db.collection('vendors').findOne({ username: 'admin2' });
     let vendorId;
-    if (existing) {
-      console.log(`[!] User ${NEW_ADMIN.username} already exists. Updating password...`);
+    if (existingAdmin2) {
       await db.collection('vendors').updateOne(
-        { _id: existing._id },
+        { username: 'admin2' },
         { $set: { password: hashedPassword, updatedAt: now } }
       );
-      vendorId = existing._id;
+      vendorId = existingAdmin2._id;
+      console.log('[OK] Reset password for admin2 to admin12345');
     } else {
+      const dateString = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
       const vendorResult = await db.collection('vendors').insertOne({
-        name: NEW_ADMIN.name,
-        username: NEW_ADMIN.username,
-        email: NEW_ADMIN.email,
-        phoneNo: NEW_ADMIN.phoneNo,
+        name: 'Secondary Admin',
+        username: 'admin2',
+        email: 'admin2@azonnox.com',
+        phoneNo: '01700000001',
         isPasswordLess: false,
         password: hashedPassword,
         registrationType: 'default',
@@ -63,38 +62,32 @@ async function createAdmin() {
         lastLoggedIn: null,
         failedLoginCount: 0,
         failedLoginStartTime: null,
-        shops: [
-          {
-            _id: shop._id,
-            role: 'super_admin',
-            pages: [],
-            permissions: []
-          }
-        ],
+        shops: shop ? [{ _id: shop._id, role: 'super_admin', pages: [], permissions: [] }] : [],
         createdAt: now,
         updatedAt: now
       });
       vendorId = vendorResult.insertedId;
-      console.log('[OK] Created new admin vendor. ID:', vendorId.toString());
+      console.log('[OK] Created admin2 with password admin12345');
     }
 
-    // Add vendor to shop users if not present
-    await db.collection('shops').updateOne(
-      { _id: shop._id, 'users._id': { $ne: vendorId } },
-      {
-        $push: {
-          users: {
-            _id: vendorId,
-            username: NEW_ADMIN.username,
-            email: NEW_ADMIN.email,
-            phoneNo: NEW_ADMIN.phoneNo,
-            role: 'super_admin'
+    if (shop && vendorId) {
+      await db.collection('shops').updateOne(
+        { _id: shop._id, 'users._id': { $ne: vendorId } },
+        {
+          $push: {
+            users: {
+              _id: vendorId,
+              username: 'admin2',
+              email: 'admin2@azonnox.com',
+              phoneNo: '01700000001',
+              role: 'super_admin'
+            }
           }
         }
-      }
-    );
+      );
+    }
 
-    console.log('SUCCESS: New admin created');
+    console.log('SUCCESS: Passwords updated');
   } catch (err) {
     console.error('[ERROR]', err.message);
   } finally {
