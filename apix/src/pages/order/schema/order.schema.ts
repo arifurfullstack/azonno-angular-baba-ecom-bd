@@ -374,3 +374,8 @@ export const OrderSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+// Indexes for production performance
+OrderSchema.index({ shop: 1, status: 1, createdAt: -1 });
+OrderSchema.index({ shop: 1, orderId: 1 });
+OrderSchema.index({ shop: 1, 'user._id': 1, createdAt: -1 });

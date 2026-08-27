@@ -7,6 +7,7 @@ import { SettingService } from './setting.service';
 import { UserSchema } from '../../user/schema/user.schema';
 import { OrderSchema } from '../../order/schema/order.schema';
 import { ShopSchema } from '../../shop/schema/shop.schema';
+import { UploadModule } from '../../upload/upload.module';
 
 @Module({
   imports: [
@@ -16,8 +17,8 @@ import { ShopSchema } from '../../shop/schema/shop.schema';
       { name: 'User', schema: UserSchema },
       { name: 'Order', schema: OrderSchema },
       { name: 'Shop', schema: ShopSchema },
-
     ]),
+    UploadModule,
   ],
   providers: [SettingService],
   controllers: [SettingController],

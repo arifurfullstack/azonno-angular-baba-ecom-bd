@@ -28,17 +28,36 @@ import { CloudflareR2Driver } from './drivers/cloudflare-r2.driver';
 export class UploadService {
   private logger = new Logger(UploadService.name);
 
+  // In-memory TTL cache for storage driver — avoids DB roundtrip on every upload
+  private readonly driverCache = new Map<string, { driver: IStorageDriver; expiresAt: number }>();
+  private readonly DRIVER_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
   constructor(
     @InjectModel('Setting') private readonly settingModel: Model<any>,
     private readonly configService: ConfigService,
   ) {}
 
   /**
-   * Resolve active storage driver for a given shop
+   * Invalidate the storage driver cache for a shop.
+   * Call this when storage settings are updated.
+   */
+  invalidateDriverCache(shopId: string) {
+    this.driverCache.delete(shopId);
+    this.logger.log(`Storage driver cache invalidated for shop ${shopId}`);
+  }
+
+  /**
+   * Resolve active storage driver for a given shop (with 5-min cache)
    */
   async getStorageDriver(shopId?: string): Promise<IStorageDriver> {
     try {
       if (shopId) {
+        // Check cache first
+        const cached = this.driverCache.get(shopId);
+        if (cached && cached.expiresAt > Date.now()) {
+          return cached.driver;
+        }
+
         const setting: any = await this.settingModel
           .findOne({ shop: shopId })
           .select('storageSetting')
@@ -47,25 +66,33 @@ export class UploadService {
         const storageSetting = setting?.storageSetting;
         if (storageSetting) {
           const provider = storageSetting.activeProvider;
+          let driver: IStorageDriver | null = null;
 
           if (provider === 'cloudinary' && storageSetting.cloudinary?.cloudName) {
-            return new CloudinaryDriver({
+            driver = new CloudinaryDriver({
               cloudName: storageSetting.cloudinary.cloudName,
               apiKey: storageSetting.cloudinary.apiKey,
               apiSecret: storageSetting.cloudinary.apiSecret,
               folder: storageSetting.cloudinary.folder,
             });
-          }
-
-          if (provider === 'cloudflare_r2' && storageSetting.cloudflareR2?.bucketName) {
-            return new CloudflareR2Driver({
+          } else if (provider === 'cloudflare_r2' && storageSetting.cloudflareR2?.bucketName) {
+            driver = new CloudflareR2Driver({
               accountId: storageSetting.cloudflareR2.accountId,
               accessKeyId: storageSetting.cloudflareR2.accessKeyId,
               secretAccessKey: storageSetting.cloudflareR2.secretAccessKey,
               bucketName: storageSetting.cloudflareR2.bucketName,
               publicDomain: storageSetting.cloudflareR2.publicDomain,
             });
+          } else {
+            driver = new LocalDriver();
           }
+
+          // Cache the resolved driver
+          this.driverCache.set(shopId, {
+            driver,
+            expiresAt: Date.now() + this.DRIVER_CACHE_TTL_MS,
+          });
+          return driver;
         }
       }
     } catch (err: any) {

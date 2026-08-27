@@ -18,6 +18,7 @@ import { ScriptService } from '../../../shared/script/script.service';
 import { ReBuildScript } from '../../../shared/script/interfaces/build-script.interface';
 import * as fs from 'fs';
 import * as path from 'path';
+import { UploadService } from '../../upload/upload.service';
 
 @Injectable()
 export class SettingService {
@@ -32,6 +33,7 @@ export class SettingService {
     private configService: ConfigService,
     private scriptService: ScriptService,
     private utilsService: UtilsService,
+    private readonly uploadService: UploadService,
   ) { }
 
   /**
@@ -49,6 +51,10 @@ export class SettingService {
         await this.settingModel.findByIdAndUpdate(settingData._id, {
           $set: addSettingDto,
         });
+        // Invalidate storage driver cache if storage settings changed
+        if (addSettingDto.storageSetting) {
+          this.uploadService.invalidateDriverCache(shop);
+        }
         const data = {
           _id: settingData._id,
         };

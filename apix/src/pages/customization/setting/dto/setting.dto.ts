@@ -22,6 +22,9 @@ export class AddSettingDto {
   @IsOptional()
   @IsBoolean()
   needRebuild: boolean;
+
+  @IsOptional()
+  storageSetting: any;
 }
 
 export class FilterSettingDto {

@@ -314,3 +314,6 @@ export const SettingSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+// Indexes for production performance
+SettingSchema.index({ shop: 1 }, { unique: true });
