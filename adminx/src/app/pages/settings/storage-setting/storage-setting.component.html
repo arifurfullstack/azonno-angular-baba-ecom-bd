@@ -1,0 +1,184 @@
+<div class="container">
+  <div class="full-sec">
+    <h3>Dynamic Storage Settings</h3>
+    <div class="icon-fill-body">
+      <div class="icon-container">
+        <div class="icon-border">
+          <button mat-icon-button class="icon-button icon-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
+              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="text">
+        <h4>Choose & Configure Active Storage Driver</h4>
+        <p>Switch between Local Disk, Cloudinary, and Cloudflare R2 object storage dynamically without breaking existing image URLs.</p>
+      </div>
+    </div>
+  </div>
+
+  <form [formGroup]="dataForm" (ngSubmit)="onSubmit()">
+    <!-- Provider Selection Cards -->
+    <div class="provider-selector-section">
+      <label class="section-label">Active Storage Driver</label>
+      <div class="provider-cards-grid">
+        <!-- Local Storage Card -->
+        <div class="provider-card" [class.active]="selectedProvider === 'local'" (click)="selectProvider('local')">
+          <div class="provider-radio">
+            <span class="radio-circle"></span>
+          </div>
+          <div class="provider-info">
+            <div class="provider-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+                <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+                <line x1="6" x2="6.01" y1="6" y2="6"/>
+                <line x1="6" x2="6.01" y1="18" y2="18"/>
+              </svg>
+              <span>Local Storage</span>
+            </div>
+            <p>Save files directly on server disk. Zero configuration required.</p>
+          </div>
+          <span class="provider-tag default-tag" *ngIf="selectedProvider === 'local'">ACTIVE</span>
+        </div>
+
+        <!-- Cloudinary Card -->
+        <div class="provider-card" [class.active]="selectedProvider === 'cloudinary'" (click)="selectProvider('cloudinary')">
+          <div class="provider-radio">
+            <span class="radio-circle"></span>
+          </div>
+          <div class="provider-info">
+            <div class="provider-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+              </svg>
+              <span>Cloudinary</span>
+            </div>
+            <p>AI transformations, instant WebP optimization & lightning CDN delivery.</p>
+          </div>
+          <span class="provider-tag active-tag" *ngIf="selectedProvider === 'cloudinary'">ACTIVE</span>
+        </div>
+
+        <!-- Cloudflare R2 Card -->
+        <div class="provider-card" [class.active]="selectedProvider === 'cloudflare_r2'" (click)="selectProvider('cloudflare_r2')">
+          <div class="provider-radio">
+            <span class="radio-circle"></span>
+          </div>
+          <div class="provider-info">
+            <div class="provider-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
+                <path d="M12 12v9"/>
+                <path d="m8 17 4 4 4-4"/>
+              </svg>
+              <span>Cloudflare R2 / S3</span>
+            </div>
+            <p>Zero egress fees, S3-compatible cloud object storage with custom CDN domain.</p>
+          </div>
+          <span class="provider-tag active-tag" *ngIf="selectedProvider === 'cloudflare_r2'">ACTIVE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Provider Forms Area -->
+    <div class="input-fields form-config-box">
+      <!-- 1. LOCAL STORAGE FORM -->
+      <div *ngIf="selectedProvider === 'local'" formGroupName="local" class="driver-form-block">
+        <div class="driver-header">
+          <h4>Local Storage Configuration</h4>
+          <p>Files will be stored locally inside the server's <code>upload/images/</code> directory and served statically.</p>
+        </div>
+        <mat-form-field appearance="outline" class="no-underline">
+          <mat-label>Directory Path</mat-label>
+          <input formControlName="folderPath" matInput placeholder="upload/images" readonly />
+        </mat-form-field>
+      </div>
+
+      <!-- 2. CLOUDINARY FORM -->
+      <div *ngIf="selectedProvider === 'cloudinary'" formGroupName="cloudinary" class="driver-form-block">
+        <div class="driver-header">
+          <h4>Cloudinary API Credentials</h4>
+          <p>Retrieve your Cloud Name, API Key, and API Secret from your Cloudinary Dashboard.</p>
+        </div>
+
+        <mat-form-field appearance="outline" class="no-underline">
+          <mat-label>Cloud Name</mat-label>
+          <input formControlName="cloudName" matInput placeholder="e.g. dxyz123abc" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="no-underline">
+          <mat-label>API Key</mat-label>
+          <input formControlName="apiKey" matInput placeholder="e.g. 123456789012345" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="no-underline">
+          <mat-label>API Secret</mat-label>
+          <input [type]="hideCloudinarySecret ? 'password' : 'text'" formControlName="apiSecret" matInput placeholder="Enter your Cloudinary API Secret" />
+          <button type="button" mat-icon-button matSuffix (click)="hideCloudinarySecret = !hideCloudinarySecret">
+            <mat-icon>{{hideCloudinarySecret ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="no-underline">
+          <mat-label>Upload Folder / Path</mat-label>
+          <input formControlName="folder" matInput placeholder="e.g. azonnox_store" />
+        </mat-form-field>
+      </div>
+
+      <!-- 3. CLOUDFLARE R2 FORM -->
+      <div *ngIf="selectedProvider === 'cloudflare_r2'" formGroupName="cloudflareR2" class="driver-form-block">
+        <div class="driver-header">
+          <h4>Cloudflare R2 (S3-Compatible) Credentials</h4>
+          <p>Obtain your R2 API Token (Account ID, Access Key ID, Secret Key) from the Cloudflare Dashboard.</p>
+        </div>
+
+        <mat-form-field appearance="outline" class="no-underline">
+          <mat-label>Account ID</mat-label>
+          <input formControlName="accountId" matInput placeholder="e.g. a1b2c3d4e5f6..." />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="no-underline">
+          <mat-label>Access Key ID</mat-label>
+          <input formControlName="accessKeyId" matInput placeholder="e.g. 9876543210..." />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="no-underline">
+          <mat-label>Secret Access Key</mat-label>
+          <input [type]="hideR2Secret ? 'password' : 'text'" formControlName="secretAccessKey" matInput placeholder="Enter Secret Access Key" />
+          <button type="button" mat-icon-button matSuffix (click)="hideR2Secret = !hideR2Secret">
+            <mat-icon>{{hideR2Secret ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="no-underline">
+          <mat-label>Bucket Name</mat-label>
+          <input formControlName="bucketName" matInput placeholder="e.g. azonnox-media" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="no-underline">
+          <mat-label>Public CDN Domain / URL</mat-label>
+          <input formControlName="publicDomain" matInput placeholder="e.g. https://pub-xxxxxxxx.r2.dev or https://cdn.yourdomain.com" />
+        </mat-form-field>
+      </div>
+
+      <!-- Test Connection Feedback Message -->
+      <div *ngIf="testResult" class="test-result-box" [class.success]="testResult.success" [class.error]="!testResult.success">
+        <mat-icon>{{testResult.success ? 'check_circle' : 'error'}}</mat-icon>
+        <span>{{testResult.message}}</span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons-group">
+        <button type="button" class="btn-test-connection" (click)="onTestConnection()" [disabled]="testingConnection">
+          <span *ngIf="!testingConnection">Test Connection</span>
+          <span *ngIf="testingConnection">Testing...</span>
+        </button>
+
+        <button type="submit" class="btn-save">
+          Save Storage Settings
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

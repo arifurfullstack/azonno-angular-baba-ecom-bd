@@ -635,6 +635,10 @@ const routes: Routes = [
         loadChildren: () => import('./settings/affiliate-marketing/affiliate-marketing.module').then(m => m.AffiliateMarketingModule)
       },
       {
+        path: 'settings/storage-setting',
+        loadChildren: () => import('./settings/storage-setting/storage-setting.module').then(m => m.StorageSettingModule)
+      },
+      {
         path: 'blog/blog-setting',
         loadChildren: () => import('./settings/blog-setting/blog-setting.module').then(m => m.BlogSettingModule),
         // data: { animation: 'AboutPage' },

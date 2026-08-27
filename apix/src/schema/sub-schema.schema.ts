@@ -753,3 +753,34 @@ export const NOTE_LIST = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+export const STORAGE_SETTING_SCHEMA = new mongoose.Schema(
+  {
+    activeProvider: {
+      type: String,
+      enum: ['local', 'cloudinary', 'cloudflare_r2'],
+      default: 'local',
+      required: false,
+    },
+    cloudinary: {
+      cloudName: { type: String, required: false },
+      apiKey: { type: String, required: false },
+      apiSecret: { type: String, required: false },
+      folder: { type: String, required: false },
+    },
+    cloudflareR2: {
+      accountId: { type: String, required: false },
+      accessKeyId: { type: String, required: false },
+      secretAccessKey: { type: String, required: false },
+      bucketName: { type: String, required: false },
+      publicDomain: { type: String, required: false },
+    },
+    local: {
+      folderPath: { type: String, required: false },
+    },
+  },
+  {
+    _id: false,
+  },
+);
+

@@ -45,4 +45,14 @@ export class SettingService {
       success: boolean
     }>(API_SETTING_INFO + 'get', {params});
   }
+
+  testStorageConnection(provider: string, config: any) {
+    return this.httpClient.post<{
+      success: boolean;
+      message: string;
+    }>(environment.apiBaseLink + '/api/upload/test-storage-connection', {
+      provider,
+      config,
+    });
+  }
 }

@@ -238,9 +238,13 @@ export class AllSettingsComponent implements OnInit {
     //        <circle cx="7" cy="6" r="1" fill="#ffffff"/>
     //        <circle cx="17" cy="18" r="1" fill="#ffffff"/>
     //      </svg>`
-    // }
-
-
+    {
+      name: 'Storage Settings',
+      routerLink: '/settings/storage-setting',
+      colorDark: '#0ea5e9',
+      colorLight: '#e0f2fe',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>`
+    },
   ]
 
   protected readonly tableTabData = TABLE_TAB_DATA;

@@ -11,6 +11,7 @@ import {
   PAYMENT_METHOD_SETTING,
   SMS_METHOD_SETTING,
   SOCIAL_LOGIN_SETTING,
+  STORAGE_SETTING_SCHEMA,
   THEME_VIEW_SETTING,
 } from '../../../../schema/sub-schema.schema';
 
@@ -234,6 +235,7 @@ export const SettingSchema = new mongoose.Schema(
     offers: [OFFER_SETTING],
     chats: [CHAT_SETTING],
     domains: [DOMAIN_SETTING],
+    storageSetting: STORAGE_SETTING_SCHEMA,
     currency: {
       name: {
         type: String,

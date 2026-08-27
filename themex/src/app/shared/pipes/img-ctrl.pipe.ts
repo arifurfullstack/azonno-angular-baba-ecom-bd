@@ -17,32 +17,41 @@ export class ImgCtrlPipe implements PipeTransform {
     const cdnBaseUrl = environment.ftpPrefixPath;
 
     if (url) {
-      const mUrl = new URL(url);
-      const searchParams = mUrl.searchParams;
-      const resolution = searchParams.get('resolution')
-      const [width, height] = resolution ? resolution.split('_') : [null, null]
+      try {
+        let width: number | null = null;
+        let height: number | null = null;
 
-      switch (type) {
-        case 'filename':
-          let path = url;
-          // Clean query params first
-          path = this.utilsService.removeUrlQuery(path);
-
-          // Dynamic extraction: Find '/upload/images/' and take everything after it
-          // Matches both /api/upload/images/ (local/api) and /upload/images/ (cdn)
-          const match = path.match(/.*\/upload\/images\/(.*)/);
-          if (match && match[1]) {
-            return match[1]; // Returns just the relative path after images/
+        try {
+          const mUrl = url.startsWith('http')
+            ? new URL(url)
+            : new URL(url, 'http://localhost');
+          const searchParams = mUrl.searchParams;
+          const resolution = searchParams.get('resolution');
+          if (resolution) {
+            const [w, h] = resolution.split('_');
+            width = w ? +w : null;
+            height = h ? +h : null;
           }
+        } catch {}
 
-          // Fallback: If no known pattern found, return original (or handle as needed)
-          return path;
+        switch (type) {
+          case 'filename':
+            let path = url;
+            path = this.utilsService.removeUrlQuery(path);
+            const match = path.match(/.*\/upload\/images\/(.*)/);
+            if (match && match[1]) {
+              return match[1];
+            }
+            return path;
 
-        case 'width':
-          return width ? +width : null;
+          case 'width':
+            return width;
 
-        case 'height':
-          return height ? +height : null;
+          case 'height':
+            return height;
+        }
+      } catch {
+        return null;
       }
     }
     return null;
