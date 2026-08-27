@@ -80,6 +80,14 @@ export class CreateVendorDto {
   role: string;
 
   @IsOptional()
+  @IsString()
+  profileImg: string;
+
+  @IsOptional()
+  @IsString()
+  profileBanner: string;
+
+  @IsOptional()
   shops: any[];
 }
 
@@ -194,6 +202,14 @@ export class UpdateVendorDto {
   @IsOptional()
   @IsBoolean()
   hasAccess: string;
+
+  @IsOptional()
+  @IsString()
+  profileImg: string;
+
+  @IsOptional()
+  @IsString()
+  profileBanner: string;
 
   @IsOptional()
   @IsArray()
