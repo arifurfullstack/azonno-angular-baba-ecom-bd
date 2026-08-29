@@ -33,7 +33,7 @@
     }
   } @placeholder (minimum 50ms) {
     <div class="products-cards">
-      @for (data of [].constructor(10); track $index) {
+      @for (data of [].constructor(10); track data?._id || $index) {
         <app-product-card-loader/>
       }
     </div>

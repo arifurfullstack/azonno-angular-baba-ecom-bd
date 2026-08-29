@@ -1,7 +1,7 @@
 <div class="cart-container">
   <div class="cart-items-skeleton">
     <!-- Skeleton for each cart item -->
-    @for(item of [1, 2, 3,4,5]; track $index){
+    @for (item of [1, 2, 3,4,5]; track item?._id || $index){
       <div class="cart-item-skeleton">
         <!-- Checkbox -->
         <ngx-skeleton-loader [theme]="{ width: '20px', height: '20px', marginRight: '10px' }"></ngx-skeleton-loader>

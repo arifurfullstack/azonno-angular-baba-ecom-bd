@@ -3,7 +3,7 @@
     <h4 class="title">Products</h4>
   </div>
 
-  @for(item of order?.orderedItems; track $index){
+  @for (item of order?.orderedItems; track item?._id || $index){
     <div class="content-lists">
       <div class="content-img-left">
         <img [src]="item?.image" alt="{{ item?.name }}">

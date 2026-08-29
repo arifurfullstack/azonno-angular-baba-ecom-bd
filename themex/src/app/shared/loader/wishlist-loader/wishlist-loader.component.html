@@ -1,4 +1,4 @@
-@for (item of [].constructor(4); track $index) {
+@for (item of [].constructor(4); track item?._id || $index) {
   <div class="list-container" >
     <div class="left-skeleton">
       <!-- Product Image -->

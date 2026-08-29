@@ -14,7 +14,7 @@
     </div>
 
     <!-- Original slides -->
-    @for(slide of slides; track $index){
+    @for (slide of slides; track slide?._id || $index){
       <div
         class="carousel-slide"
         [ngStyle]="{ cursor: slide.url === '/' || !slide.url ? 'default' : 'pointer' }"

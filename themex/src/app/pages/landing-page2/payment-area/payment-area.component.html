@@ -89,7 +89,7 @@
                   </div>
                   @if (dropdownVisible) {
                     <div class="custom-select__options">
-                      @for (item of divisions; track $index) {
+                      @for (item of divisions; track item?._id || $index) {
                         <div
                           (click)="selectDivision(item)"
                           class="custom-select__option"

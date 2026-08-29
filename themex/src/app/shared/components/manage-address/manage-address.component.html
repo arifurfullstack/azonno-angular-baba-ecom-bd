@@ -19,7 +19,7 @@
           </a>
         </div>
         <div class="user-address-main">
-          @for(data of addresses; track $index){
+          @for (data of addresses; track data?._id || $index){
             <div
               class="user-present-address"
               [class]="data?.setDefaultAddress ? 'active' : ''"
@@ -211,7 +211,7 @@
                   formControlName="division"
                   (selectionChange)="onChangeRegion($event)"
                 >
-                  @for(d of divisions; track $index){
+                  @for (d of divisions; track d?._id || $index){
                     <mat-option [value]="d?._id" >{{
                         d?.name
                       }}</mat-option>
@@ -228,7 +228,7 @@
                   formControlName="area"
                   (selectionChange)="onChangeArea($event)"
                 >
-                  @for(a of area; track $index){
+                  @for (a of area; track a?._id || $index){
                     <mat-option [value]="a?._id">{{
                         a?.name
                       }}</mat-option>
@@ -242,7 +242,7 @@
               <mat-form-field class="mat-select-form" appearance="outline">
                 <mat-label>Select Zone</mat-label>
                 <mat-select formControlName="zone">
-                  @for(z of zone; track $index){
+                  @for (z of zone; track z?._id || $index){
                     <mat-option [value]="z?._id">{{
                         z?.name
                       }}</mat-option>

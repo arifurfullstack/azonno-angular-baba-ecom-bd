@@ -34,7 +34,7 @@
           [style.transform]="getSlideTransform()"
           [style.transition]="slideTransition"
         >
-          @for(image of galleryImages; track $index){
+          @for (image of galleryImages; track image?._id || $index){
             <img
               [src]="image"
               alt="Main Image"

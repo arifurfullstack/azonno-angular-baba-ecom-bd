@@ -21,13 +21,13 @@
 
   <app-tracking-header [order]="order"></app-tracking-header>
 
-  @for(singleOrder of order; track $index){
+  @for (singleOrder of order; track singleOrder?._id || $index){
     <div>
       @if(singleOrder?.orderTimeline) {
         <div class="card">
           <div class="tracking-item">
             <div class="tracking-date">
-              @for(timeline of singleOrder?.orderTimeline | keyvalue; track $index) {
+              @for (timeline of singleOrder?.orderTimeline | keyvalue; track timeline?._id || $index) {
                 <div class="dates">
                   <span>{{ timeline?.value?.date || 'Date not available' }}</span><br />
                   <span class="time">{{ timeline?.value?.time || 'Time not available' }}</span>
@@ -37,7 +37,7 @@
 
             <div class="active-stick">
               <div class="timeline">
-                @for(timeline of singleOrder?.orderTimeline | keyvalue; track $index) {
+                @for (timeline of singleOrder?.orderTimeline | keyvalue; track timeline?._id || $index) {
                   <div class="timeline-item">
                     <div class="timeline-circle"></div>
                   </div>
@@ -46,7 +46,7 @@
             </div>
 
             <div class="tracking-details">
-              @for(timeline of singleOrder?.orderTimeline | keyvalue; track $index) {
+              @for (timeline of singleOrder?.orderTimeline | keyvalue; track timeline?._id || $index) {
                 <div class="status-text">
                   <h4>{{ getStatusMessage(timeline?.key) }}</h4>
                   <p class="location">{{ timeline?.value?.location || 'Location not available' }}</p>

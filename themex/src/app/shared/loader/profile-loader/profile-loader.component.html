@@ -1,4 +1,4 @@
-@for (item of [1, 2, 3, 4, 5, 6, 7]; track $index){
+@for (item of [1, 2, 3, 4, 5, 6, 7]; track item?._id || $index){
   <div class="list-container">
     <div class="list-item-skeleton">
       <!-- Icon Skeleton -->

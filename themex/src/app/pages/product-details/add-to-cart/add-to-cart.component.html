@@ -26,7 +26,7 @@
         </div>
         <div class="color-variant-main">
           <ul>
-            @for(data of product?.variationOptions; track $index){
+            @for (data of product?.variationOptions; track data?._id || $index){
               <li>
                   <button [class.active]="selectedVariation === data"
                           (click)="onSelectVariation(data)" >
@@ -53,7 +53,7 @@
         </div>
         <div class="size-variant-main" >
           <ul  >
-            @for(data of product?.variation2Options; track $index){
+            @for (data of product?.variation2Options; track data?._id || $index){
               <li><button (click)="onSelectVariation2(data)" [class.active]="selectedVariation2 === data">
                 {{ data }}
                 <span><i class="fa fa-check"></i></span>

@@ -3,7 +3,7 @@
     class="carousel-wrapper"
     [ngStyle]="{ transform: 'translateX(-' + currentSlideIndex * 100 + '%)' }"
   >
-    @for(item of items; track  $index){
+    @for (item of items; track item?._id || $index){
       <ng-container>
         <div class="carousel-slide">
           <ng-template [ngTemplateOutlet]="slideTemplate" [ngTemplateOutletContext]="{ $implicit: item }"></ng-template>

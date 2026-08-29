@@ -18,7 +18,7 @@
             }
           }
         } @placeholder (minimum 50ms) {
-          @for (data of [].constructor(8); track $index) {
+          @for (data of [].constructor(8); track data?._id || $index) {
             <app-category-loader />
           }
         }
@@ -48,34 +48,34 @@
         @defer (when !isLoading) {
           @switch (productCardViews) {
             @case ('Product Card 1') {
-              @for (item of products; track $index) {
+              @for (item of products; track item?._id || $index) {
                 <app-product-card-1 [product]="item"></app-product-card-1>
               }
             }
             @case ('Product Card 2') {
-              @for (item of products; track $index) {
+              @for (item of products; track item?._id || $index) {
                 <app-product-card-2 [product]="item"></app-product-card-2>
               }
             }
             @case ('Product Card 3') {
-              @for (item of products; track $index) {
+              @for (item of products; track item?._id || $index) {
                 <app-product-card-3 [product]="item"></app-product-card-3>
               }
             }
             @case ('Product Card 4') {
-              @for (item of products; track $index) {
+              @for (item of products; track item?._id || $index) {
                 <app-product-card-4 [product]="item"></app-product-card-4>
               }
             }
             @case ('Product Card 5') {
-              @for (item of products; track $index) {
+              @for (item of products; track item?._id || $index) {
                 <app-product-card-5 [product]="item"></app-product-card-5>
               }
             }
           }
 
         } @placeholder (minimum 50ms) {
-          @for (data of [].constructor(8); track $index) {
+          @for (data of [].constructor(8); track data?._id || $index) {
             <app-product-card-loader />
           }
         }

@@ -1,4 +1,4 @@
-@for(item of [1, 2, 3, 4]; track $index){
+@for (item of [1, 2, 3, 4]; track item?._id || $index){
   <div class="list-container">
     <div class="left-skeleton">
       <!-- Checkbox -->

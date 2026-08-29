@@ -1,5 +1,5 @@
 <div class="btn-skeleton">
-  @for (i of [1, 2]; track $index) {
+  @for (i of [1, 2]; track i?._id || $index) {
     <div class="btn-entry-skeleton">
       <div class="btn-stick">
         <ngx-skeleton-loader [theme]="{ width: '990px', height: '40px', marginBottom: '15px' }"></ngx-skeleton-loader>

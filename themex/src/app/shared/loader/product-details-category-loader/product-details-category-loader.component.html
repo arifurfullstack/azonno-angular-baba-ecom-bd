@@ -2,7 +2,7 @@
     <ngx-skeleton-loader
         [theme]="{ width: '200px', height: '40px' }"
       ></ngx-skeleton-loader>
-  @for(item of [1, 2, 3, 4, 5]; track $index){
+  @for (item of [1, 2, 3, 4, 5]; track item?._id || $index){
     <div class="list-container">
       <div class="left-skeleton">
         <!-- Product Image -->

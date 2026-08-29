@@ -1,6 +1,6 @@
 <div class="timeline-skeleton">
 
-  @for (i of [].constructor(4); track $index) {
+  @for (i of [].constructor(4); track i?._id || $index) {
     <div class="timeline-entry-skeleton">
       <div class="left-timeline">
         <!-- Date Skeleton -->

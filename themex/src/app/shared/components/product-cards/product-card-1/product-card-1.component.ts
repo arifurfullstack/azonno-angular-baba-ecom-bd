@@ -1,4 +1,4 @@
-import {Component, computed, HostListener, inject, Input, OnDestroy, OnInit, Signal} from '@angular/core';
+import {Component, computed, HostListener, inject, Input, OnDestroy, OnInit, Signal, ChangeDetectionStrategy} from '@angular/core';
 import {Product, VariationList} from '../../../../interfaces/common/product.interface';
 import {Cart} from '../../../../interfaces/common/cart.interface';
 import {Wishlist} from '../../../../interfaces/common/wishlist.interface';
@@ -22,6 +22,7 @@ import {GtmService} from '../../../../services/core/gtm.service';
 @Component({
   selector: 'app-product-card-1',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     ProductPricePipe,

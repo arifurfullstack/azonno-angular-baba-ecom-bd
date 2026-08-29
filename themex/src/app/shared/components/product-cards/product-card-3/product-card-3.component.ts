@@ -7,7 +7,8 @@ import {
   OnDestroy,
   OnInit,
   Signal,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { Product, VariationList } from "../../../../interfaces/common/product.interface";
 import { ProductPricePipe } from "../../../pipes/product-price.pipe";
@@ -32,6 +33,7 @@ import { GtmService } from '../../../../services/core/gtm.service';
 @Component({
   selector: 'app-product-card-3',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     ProductPricePipe,

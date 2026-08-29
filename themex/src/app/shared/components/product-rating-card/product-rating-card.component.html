@@ -26,7 +26,7 @@
 
     <div class="mobile-device-comments">
       <div class="comment-img">
-        @for (item of data?.images; track $index) {
+        @for (item of data?.images; track item?._id || $index) {
           <img [src]="item" alt="product-img" (click)="openGallery($event, data?.images)">
         }
       </div>

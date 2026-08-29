@@ -7,7 +7,8 @@ import {
   OnDestroy,
   OnInit,
   Signal,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {ProductPricePipe} from "../../../pipes/product-price.pipe";
 import {ArrayToSingleImagePipe} from "../../../pipes/array-to-single-image.pipe";
@@ -32,6 +33,7 @@ import {GtmService} from '../../../../services/core/gtm.service';
 @Component({
   selector: 'app-product-card-5',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ProductPricePipe,
     ArrayToSingleImagePipe,

@@ -21,17 +21,17 @@
             @if (blogs?.length) {
       @switch (blogCardViews) {
         @case ('Blog Card 1') {
-                      @for (item of blogs.slice(0, visibleProducts); track $index) {
+                      @for (item of blogs.slice(0, visibleProducts); track item?._id || $index) {
                           <app-blog-card-one [data]="item"></app-blog-card-one>
                         }
-<!--          @for (item of [0,1,2]; track $index) {-->
+<!--          @for (item of [0,1,2]; track item?._id || $index) {-->
 <!--            <app-blog-card-one [data]="item"></app-blog-card-one>-->
 <!--          }-->
         }
       }
             }
     } @placeholder (minimum 50ms) {
-      @for (data of [].constructor(10); track $index) {
+      @for (data of [].constructor(10); track data?._id || $index) {
         <app-product-card-loader/>
       }
     }

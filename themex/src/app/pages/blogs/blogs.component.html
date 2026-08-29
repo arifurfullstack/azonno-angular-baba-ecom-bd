@@ -22,7 +22,7 @@
       </div>
 
       <div class="show-product-main grid">
-        @for(data of allBlog; track $index){
+        @for (data of allBlog; track data?._id || $index){
           <ng-container>
             <app-blog-card-one [data]="data">
             </app-blog-card-one>

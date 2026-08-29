@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable, of, tap } from 'rxjs';
+import { Observable, of, tap, shareReplay } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Category } from '../../interfaces/common/category.interface';
 import { FilterData } from '../../interfaces/core/filter-data';
@@ -17,6 +17,9 @@ export class CategoryService {
     string,
     { data: Category[]; message: string; success: boolean }
   > = new Map();
+  
+  private allCategoriesCache$: Observable<{ data: Category[]; count: number; success: boolean }> | null = null;
+  private currentCategoriesSearchQuery: string | undefined = undefined;
 
   // Inject
   private readonly httpClient = inject(HttpClient);
@@ -55,14 +58,20 @@ export class CategoryService {
   }
 
   getAllCategories(filterData: FilterData, searchQuery?: string) {
-    let params = new HttpParams();
-    if (searchQuery) {
-      params = params.append('q', searchQuery);
+    if (!this.allCategoriesCache$ || this.currentCategoriesSearchQuery !== searchQuery) {
+      let params = new HttpParams();
+      if (searchQuery) {
+        params = params.append('q', searchQuery);
+      }
+      this.currentCategoriesSearchQuery = searchQuery;
+      this.allCategoriesCache$ = this.httpClient.post<{
+        data: Category[];
+        count: number;
+        success: boolean;
+      }>(API_URL + 'get-all-by-shop', filterData, { params }).pipe(
+        shareReplay(1)
+      );
     }
-    return this.httpClient.post<{
-      data: Category[];
-      count: number;
-      success: boolean;
-    }>(API_URL + 'get-all-by-shop', filterData, { params });
+    return this.allCategoriesCache$;
   }
 }

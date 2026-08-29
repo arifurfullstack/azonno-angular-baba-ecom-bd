@@ -49,7 +49,7 @@
 
               <div class="search-text">
                 <div class="words">
-                  @for (item of searchHints; track $index) {
+                  @for (item of searchHints; track item?._id || $index) {
                   <span>{{item}}</span>
                   }
                 </div>

@@ -16,11 +16,11 @@
     @case ('Category 1') {
       <div class="categories-cards">
         @defer (when !isLoading) {
-          @for (item of categories.slice(0, (breakpointObserver.isMatched('(max-width: 599px)') ? 6 : 8)); track $index) {
+          @for (item of categories.slice(0, (breakpointObserver.isMatched('(max-width: 599px)') ? 6 : 8)); track item?._id || $index) {
             <app-categories-card [category]="item"></app-categories-card>
           }
         } @placeholder (minimum 50ms) {
-          @for (data of [].constructor(8); track $index) {
+          @for (data of [].constructor(8); track data?._id || $index) {
             <app-category-loader />
           }
         }
@@ -29,11 +29,11 @@
     @case ('Category 2') {
       <div class="categories-cards2">
         @defer (when !isLoading) {
-          @for (item of categories.slice(0, (breakpointObserver.isMatched('(max-width: 599px)') ? 10 : 10)); track $index) {
+          @for (item of categories.slice(0, (breakpointObserver.isMatched('(max-width: 599px)') ? 10 : 10)); track item?._id || $index) {
             <app-category-card-2 [category]="item"></app-category-card-2>
           }
         } @placeholder (minimum 50ms) {
-          @for (data of [].constructor(8); track $index) {
+          @for (data of [].constructor(8); track data?._id || $index) {
             <app-category-loader-2 />
           }
         }

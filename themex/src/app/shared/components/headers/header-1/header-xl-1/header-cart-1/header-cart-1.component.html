@@ -26,7 +26,7 @@
   <div [ngClass]="{'cart-dropdown-wrap': true, 'hidden': currentUrl === '/cart' || currentUrl === '/checkout'}">
     @if(carts?.length){
     <ul>
-      @for (item of carts; track $index) {
+      @for (item of carts; track item?._id || $index) {
         <li>
           <div class="shopping-cart-img">
             <img [src]="getProductImage(item)"  alt="">

@@ -7,7 +7,8 @@ import {
   OnDestroy,
   OnInit,
   Signal,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {Router, RouterLink} from "@angular/router";
 import {Subscription} from 'rxjs';
@@ -33,6 +34,7 @@ import {GtmService} from '../../../../services/core/gtm.service';
 @Component({
   selector: 'app-product-card-2',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     ProductPricePipe,

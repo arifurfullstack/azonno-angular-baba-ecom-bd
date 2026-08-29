@@ -9,7 +9,7 @@
               <div class="table-row">
                 <div class="table-heading"></div>
 
-                @for (c of compareListFromDB; track $index){
+                @for (c of compareListFromDB; track c?._id || $index){
                   <div class="table-data">
                     <div class="remove">
                       <h3 (click)="removeItem(c._id)">
@@ -29,7 +29,7 @@
                   <h3>Product Image</h3>
                 </div>
 
-                @for (c of compareListFromDB; track $index){
+                @for (c of compareListFromDB; track c?._id || $index){
                   <div class="table-data">
                     <div class="product">
                       <img
@@ -47,7 +47,7 @@
                   <h3>Name</h3>
                 </div>
 
-                @for(c of compareListFromDB; track $index){
+                @for (c of compareListFromDB; track c?._id || $index){
                   <div class="table-data">
                     <div class="product-name">
                       <h3>{{ c?.name }}</h3>
@@ -62,7 +62,7 @@
                 <div class="table-heading">
                   <h3>Price</h3>
                 </div>
-                @for (c of compareListFromDB; track $index){
+                @for (c of compareListFromDB; track c?._id || $index){
                   <div class="table-data">
                     <div class="product-price">
                       <h3>{{c?.salePrice | currencyCtr}}</h3>
@@ -76,7 +76,7 @@
                 <div class="table-heading">
                   <h3>Status</h3>
                 </div>
-                @for(c of compareListFromDB; track $index){
+                @for (c of compareListFromDB; track c?._id || $index){
                   <div class="table-data">
                     <div class="product-status">
                       <h3
@@ -92,9 +92,9 @@
                     <h3>Specification</h3>
                   </div>
 
-                  @for(c of compareListFromDB; track $index){
+                  @for (c of compareListFromDB; track c?._id || $index){
                     <div class=" table-data1">
-                      @for(d of c?.specifications; track $index){
+                      @for (d of c?.specifications; track d?._id || $index){
                         <div class="product-action-btn1">
                           <ul  class="sp-ul">
                             <li class="title" >
@@ -118,7 +118,7 @@
                   <h3>Action</h3>
                 </div>
 
-                @for (c of compareListFromDB; track $index){
+                @for (c of compareListFromDB; track c?._id || $index){
                   <div class="table-data">
                     <div class="product-action-btn">
                       <ul>
