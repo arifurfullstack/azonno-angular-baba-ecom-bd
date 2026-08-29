@@ -161,7 +161,9 @@ export function app(): express.Express {
         providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
       })
       .then((html) => {
-        const apiBaseLink = process.env['API_BASE_LINK'] || `${protocol}://${headers.host}`;
+        const cleanHost = (headers.host || '').replace(/^www\./, '');
+        const autoApiLink = !isLocal ? `${protocol}://api.${cleanHost}` : `${protocol}://${headers.host}`;
+        const apiBaseLink = process.env['API_BASE_LINK'] || autoApiLink;
         const envScript = `<script>window.__env = { apiBaseLink: '${apiBaseLink}' };</script>`;
         const modifiedHtml = html.replace('</head>', `${envScript}</head>`);
         res.send(modifiedHtml);

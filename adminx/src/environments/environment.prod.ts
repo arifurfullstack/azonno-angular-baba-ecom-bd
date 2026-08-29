@@ -4,10 +4,15 @@ let adminDomain = '';
 
 if (isBrowser) {
   const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
   adminDomain = hostname;
   if ((window as any).__env?.apiBaseLink) {
     apiBase = (window as any).__env.apiBaseLink;
     adminDomain = (window as any).__env.adminDomain || hostname;
+  } else if (hostname.startsWith('admin.')) {
+    // Automatically route to api.<rootDomain> when hosted on admin.<rootDomain>
+    const rootDomain = hostname.replace(/^admin\./, '');
+    apiBase = `${protocol}//api.${rootDomain}`;
   } else {
     // Same-origin API: domain.com/api (no subdomain needed)
     apiBase = window.location.origin;
