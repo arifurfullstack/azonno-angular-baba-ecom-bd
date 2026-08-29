@@ -430,9 +430,6 @@ export class ProductService {
   async getAllProductForUi(payload: any): Promise<ResponsePayload> {
     try {
       const { shop, status, page, limit } = payload;
-      const fSetting: any = await this.settingModel
-        .findOne({ shop: shop })
-        .select('productSetting -_id');
 
       const tagName = payload['tags.name'];
       const mFilter: any = { shop: shop };
@@ -448,16 +445,25 @@ export class ProductService {
         mFilter['tags.name'] = tagName;
       }
 
+      const skip = (Number(page) - 1) * Number(limit);
+
+      // Settings lookup and count run in parallel (independent queries);
+      // only the data find() needs to wait for the sort preference.
+      const [fSetting, totalCount] = await Promise.all([
+        this.settingModel
+          .findOne({ shop: shop })
+          .select('productSetting -_id'),
+        this.productModel.countDocuments(mFilter),
+      ]);
+
       let sortQuery: any = {};
-      if (fSetting.productSetting.isEnableSoldQuantitySort) {
+      if (fSetting?.productSetting?.isEnableSoldQuantitySort) {
         sortQuery = { totalSold: -1 };
-      } else if (fSetting.productSetting.isEnablePrioritySort) {
+      } else if (fSetting?.productSetting?.isEnablePrioritySort) {
         sortQuery = { priority: -1 };
       } else {
         sortQuery = { createdAt: -1 };
       }
-
-      const skip = (Number(page) - 1) * Number(limit);
 
       const data = await this.productModel
         .find(mFilter)
@@ -467,8 +473,6 @@ export class ProductService {
         .skip(Number(skip))
         .limit(Number(limit))
         .sort(sortQuery);
-
-      const totalCount = await this.productModel.countDocuments(mFilter);
 
       return {
         success: true,
@@ -826,40 +830,34 @@ export class ProductService {
     }
 
     try {
-      // Main
-      const dataAggregates = await this.productModel.aggregate(
-        aggregateStages,
-        { allowDiskUse: true },
-      );
+      // Run the main query and all filter-group aggregations in parallel.
+      // Each aggregate() is a separate MongoDB round trip; running them
+      // sequentially multiplied Atlas RTT across every product list request.
+      const wantsCategory =
+        filterGroup && filterGroup.isGroup && filterGroup.category;
+      const wantsSubCategory =
+        filterGroup && filterGroup.isGroup && filterGroup.subCategory;
+      const wantsBrand = filterGroup && filterGroup.isGroup && filterGroup.brand;
 
-      // GROUP FILTER PRODUCTS DATA
-      let categoryAggregates: any;
-      let subCategoryAggregates: any;
-      let brandAggregates: any;
-
-      // Category
-      if (filterGroup && filterGroup.isGroup && filterGroup.category) {
-        categoryAggregates = await this.productModel.aggregate(
-          aggregateCategoryGroupStages,
-          { allowDiskUse: true },
-        );
-      }
-
-      // Sub Category
-      if (filterGroup && filterGroup.isGroup && filterGroup.subCategory) {
-        subCategoryAggregates = await this.productModel.aggregate(
-          aggregateSubCategoryGroupStages,
-          { allowDiskUse: true },
-        );
-      }
-
-      // Brand
-      if (filterGroup && filterGroup.isGroup && filterGroup.brand) {
-        brandAggregates = await this.productModel.aggregate(
-          aggregateBrandGroupStages,
-          { allowDiskUse: true },
-        );
-      }
+      const [dataAggregates, categoryAggregates, subCategoryAggregates, brandAggregates] =
+        await Promise.all([
+          this.productModel.aggregate(aggregateStages, { allowDiskUse: true }),
+          wantsCategory
+            ? this.productModel.aggregate(aggregateCategoryGroupStages, {
+                allowDiskUse: true,
+              })
+            : Promise.resolve(undefined),
+          wantsSubCategory
+            ? this.productModel.aggregate(aggregateSubCategoryGroupStages, {
+                allowDiskUse: true,
+              })
+            : Promise.resolve(undefined),
+          wantsBrand
+            ? this.productModel.aggregate(aggregateBrandGroupStages, {
+                allowDiskUse: true,
+              })
+            : Promise.resolve(undefined),
+        ]);
 
       // Main Filter Data
       let allFilterGroups: any;
@@ -940,13 +938,17 @@ export class ProductService {
         .findOne(query)
         .select(select);
 
-      // Increment view count
+      // Increment view count (fire-and-forget: never block the read
+      // response on this extra Atlas write round trip)
       if (data) {
-        await this.productModel.findByIdAndUpdate(data._id, {
-          $inc: {
-            totalView: 1,
-          },
-        });
+        this.productModel
+          .findByIdAndUpdate(data._id, {
+            $inc: {
+              totalView: 1,
+            },
+          })
+          .exec()
+          .catch((err) => console.error('view count increment failed:', err));
       }
 
       return {
@@ -1034,13 +1036,17 @@ export class ProductService {
         .findOne(query)
         .select(select);
 
-      // Increment view count
+      // Increment view count (fire-and-forget: never block the read
+      // response on this extra Atlas write round trip)
       if (data) {
-        await this.productModel.findByIdAndUpdate(data._id, {
-          $inc: {
-            totalView: 1,
-          },
-        });
+        this.productModel
+          .findByIdAndUpdate(data._id, {
+            $inc: {
+              totalView: 1,
+            },
+          })
+          .exec()
+          .catch((err) => console.error('view count increment failed:', err));
       }
 
       return {

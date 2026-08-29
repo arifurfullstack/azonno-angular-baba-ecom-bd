@@ -6,12 +6,16 @@ import {PendingReviewComponent} from './pages/pending-review/pending-review.comp
 import {userAuthGuard} from './auth-guard/user-auth.guard';
 import {AppConfigService} from './services/core/app-config.service';
 import {PageViewSetting, ThemeViewSetting} from './interfaces/common/setting.interface';
+import {homeProductsResolver} from './pages/home/home-products.resolver';
 
 const baseRoutes: Routes = [
   {
     path: '',
     loadComponent: () =>
       import('./pages/home/home.component').then((m) => m.HomeComponent),
+    resolve: {
+      homeProducts: homeProductsResolver,
+    },
     data: {preloadAfter: null},
   },
   // {

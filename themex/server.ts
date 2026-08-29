@@ -7,6 +7,7 @@ import AppServerModule from './src/main.server';
 import * as dotenv from 'dotenv';
 import fs from 'node:fs';
 import http from 'node:http';
+import https from 'node:https';
 
 import compression from 'compression';
 
@@ -27,27 +28,124 @@ export function app(): express.Express {
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
 
-  // 1. Proxy /api requests to internal NestJS API backend
+  // 1. Proxy /api requests to the NestJS API backend.
+  //    The internal service is tried first; on error/timeout the public
+  //    api.<host> origin is used as fallback for split-domain deployments
+  //    where the API runs in a separate container.
   server.use('/api', (req, res) => {
     const internalApiPort = process.env['INTERNAL_API_PORT'] || process.env['PORT_API'] || 3000;
-    const options: http.RequestOptions = {
-      hostname: '127.0.0.1',
-      port: internalApiPort,
-      path: req.originalUrl,
-      method: req.method,
-      headers: { ...req.headers, host: req.headers.host }
-    };
-    const proxyReq = http.request(options, (proxyRes) => {
-      res.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
-      proxyRes.pipe(res, { end: true });
-    });
-    proxyReq.on('error', (err) => {
-      console.error('API proxy error:', err.message);
-      if (!res.headersSent) {
-        res.status(502).json({ success: false, message: 'API service unavailable' });
+    const envBase = process.env['INTERNAL_API_URL'] || process.env['API_BASE_LINK'];
+    const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || '';
+    const cleanHost = host.replace(/^www\./, '').split(':')[0];
+    const isLocal = cleanHost.includes('localhost') || cleanHost.includes('127.0.0.1');
+    const publicBase = !isLocal && !envBase ? `https://api.${cleanHost}` : null;
+
+    interface ProxyTarget {
+      protocol: 'http:' | 'https:';
+      hostname: string;
+      port: string;
+    }
+    const targets: ProxyTarget[] = [];
+    if (envBase) {
+      const u = new URL(envBase);
+      targets.push({
+        protocol: u.protocol as 'http:' | 'https:',
+        hostname: u.hostname,
+        port: u.port || (u.protocol === 'https:' ? '443' : '80')
+      });
+    } else {
+      targets.push({ protocol: 'http:', hostname: '127.0.0.1', port: String(internalApiPort) });
+      if (publicBase) {
+        const u = new URL(publicBase);
+        targets.push({
+          protocol: u.protocol as 'http:' | 'https:',
+          hostname: u.hostname,
+          port: u.port || '443'
+        });
       }
+    }
+
+    // Large bodies (file uploads) stream straight through without fallback;
+    // small JSON bodies are buffered so a fallback target can replay them.
+    const contentLength = Number(req.headers['content-length'] || 0);
+    if (contentLength > 2 * 1024 * 1024) {
+      targets.length = 1;
+      req.pipe(tryRequest(targets[0], 0, true), { end: true });
+      return;
+    }
+
+    const chunks: Buffer[] = [];
+    let bufferedBody: Buffer = Buffer.alloc(0);
+    req.on('data', (c: Buffer) => chunks.push(c));
+    req.on('aborted', () => { /* client went away */ });
+    req.on('end', () => {
+      bufferedBody = Buffer.concat(chunks);
+      const proxyReq = tryRequest(targets[0], 0, false);
+      if (bufferedBody.length) {
+        proxyReq.write(bufferedBody);
+      }
+      proxyReq.end();
     });
-    req.pipe(proxyReq, { end: true });
+
+    function tryRequest(target: ProxyTarget, index: number, piped: boolean): http.ClientRequest {
+      const options: http.RequestOptions = {
+        protocol: target.protocol,
+        hostname: target.hostname,
+        port: target.port,
+        path: req.originalUrl,
+        method: req.method,
+        headers: {
+          ...req.headers,
+          host: target.port === '80' || target.port === '443'
+            ? target.hostname
+            : `${target.hostname}:${target.port}`
+        },
+        timeout: 3000
+      };
+      const proxyReq = target.protocol === 'https:'
+        ? https.request(options)
+        : http.request(options);
+      proxyReq.on('response', (proxyRes) => {
+        // An HTML 404 means the internal address is serving some other app
+        // (or nothing mapped this route) — not the API. Fall back to the
+        // next candidate instead of shipping that page to the client.
+        const contentType = String(proxyRes.headers['content-type'] || '');
+        const wrongService = proxyRes.statusCode === 404 && contentType.includes('text/html');
+        if (wrongService && !piped && !res.headersSent && index + 1 < targets.length) {
+          proxyRes.resume(); // drain the discarded response
+          const retryReq = tryRequest(targets[index + 1], index + 1, false);
+          if (bufferedBody.length) {
+            retryReq.write(bufferedBody);
+          }
+          retryReq.end();
+          return;
+        }
+        res.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
+        proxyRes.pipe(res, { end: true });
+      });
+      proxyReq.on('timeout', () => proxyReq.destroy(new Error('API proxy timeout')));
+      if (!piped) {
+        proxyReq.on('error', () => {
+          if (!res.headersSent && index + 1 < targets.length) {
+            const retryReq = tryRequest(targets[index + 1], index + 1, false);
+            if (bufferedBody.length) {
+              retryReq.write(bufferedBody);
+            }
+            retryReq.end();
+          } else if (!res.headersSent) {
+            res.status(502).json({ success: false, message: 'API service unavailable' });
+          }
+        });
+      } else {
+        proxyReq.on('error', (err) => {
+          console.error('API proxy error:', err.message);
+          if (!res.headersSent) {
+            res.status(502).json({ success: false, message: 'API service unavailable' });
+          }
+        });
+      }
+      return proxyReq;
+    }
   });
 
   // 2. Serve Admin Panel SPA files under /admin
@@ -76,32 +174,40 @@ export function app(): express.Express {
     });
   }
 
-  // 3. Serve shop-settings.json dynamically from external volume mount or fallback to local browser dist folder
+  // 3. Serve shop-settings.json dynamically from the API (internal first,
+  //    then public api.<host>), with volume/file fallbacks.
   server.get('/shop-settings.json', async (req, res): Promise<void> => {
     try {
       const host = req.headers.host || '';
       const cleanHost = host.replace('www.', '').split(':')[0];
       const internalApiPort = process.env['INTERNAL_API_PORT'] || process.env['PORT_API'] || 3000;
       const internalApiUrl = process.env['INTERNAL_API_URL'] || `http://127.0.0.1:${internalApiPort}`;
+      const isLocal = cleanHost.includes('localhost') || cleanHost.includes('127.0.0.1');
+      const candidates = process.env['INTERNAL_API_URL']
+        ? [internalApiUrl]
+        : isLocal
+          ? [internalApiUrl]
+          : [internalApiUrl, `https://api.${cleanHost}`];
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1500);
-
-      try {
-        const apiResponse = await fetch(`${internalApiUrl}/api/shop/get-setting-by-domain?domain=${cleanHost}`, {
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        if (apiResponse.ok) {
-          const json = await apiResponse.json();
-          if (json && json.success && json.data) {
-            res.json(json.data);
-            return;
+      for (const base of candidates) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500);
+        try {
+          const apiResponse = await fetch(`${base}/api/shop/get-setting-by-domain?domain=${cleanHost}`, {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          if (apiResponse.ok) {
+            const json = await apiResponse.json();
+            if (json && json.success && json.data) {
+              res.json(json.data);
+              return;
+            }
           }
+        } catch (fetchErr: any) {
+          clearTimeout(timeoutId);
+          console.warn(`Shop settings fetch from ${base} failed:`, fetchErr.message);
         }
-      } catch (fetchErr: any) {
-        clearTimeout(timeoutId);
-        console.warn('API fetch failed or timed out:', fetchErr.message);
       }
     } catch (e: any) {
       console.warn('Failed to load shop settings from API, falling back to local file:', e.message);

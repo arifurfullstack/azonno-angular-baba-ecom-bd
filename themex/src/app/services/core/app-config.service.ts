@@ -1,8 +1,9 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable, Optional, PLATFORM_ID } from '@angular/core';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, timeout } from 'rxjs';
 import { SettingService } from '../common/setting.service';
+import { setSsrApiBase } from './ssr-api-base';
 import { GtmService } from './gtm.service';
 import { PixelService } from './pixel.service';
 import { ScriptLoaderService } from './script-loader.service';
@@ -89,23 +90,51 @@ export class AppConfigService {
           newConfig = await firstValueFrom(this.http.get(url));
         }
       } else {
+        // SSR: probe candidate API bases with a short timeout. When the
+        // internal API is unreachable (split-domain deployments), a naive
+        // single attempt hangs for seconds and the render ships empty.
         const domain = this.requestDomain || 'theeroticsocial.com';
         const internalPort = process.env['INTERNAL_API_PORT'] || process.env['PORT_API'] || '3000';
-        const internalApiUrl = process.env['INTERNAL_API_URL'] || `http://127.0.0.1:${internalPort}`;
-        try {
-          const apiResponse = await firstValueFrom(
-            this.http.get<any>(`${internalApiUrl}/api/shop/get-setting-by-domain?domain=${domain}`)
-          );
-          if (apiResponse && apiResponse.success && apiResponse.data) {
-            newConfig = apiResponse.data;
-          } else {
-            throw new Error('API returned success: false');
+        const envBase = process.env['INTERNAL_API_URL'] || process.env['API_BASE_LINK'];
+        // [base, timeoutMs] — internal transport should answer instantly;
+        // the public api.<domain> hop may need a few seconds (TLS + DNS).
+        const candidates: Array<{ base: string; timeoutMs: number }> = envBase
+          ? [{ base: envBase, timeoutMs: 4000 }]
+          : [
+              { base: `http://127.0.0.1:${internalPort}`, timeoutMs: 1500 },
+              { base: `https://api.${domain}`, timeoutMs: 4000 },
+            ];
+
+        let resolved = false;
+        for (const candidate of candidates) {
+          try {
+            const apiResponse = await firstValueFrom(
+              this.http
+                .get<{ success: boolean; data: any }>(
+                  `${candidate.base}/api/shop/get-setting-by-domain?domain=${domain}`
+                )
+                .pipe(timeout(candidate.timeoutMs))
+            );
+            if (apiResponse && apiResponse.success && apiResponse.data) {
+              newConfig = apiResponse.data;
+              setSsrApiBase(candidate.base);
+              resolved = true;
+              break;
+            }
+          } catch (err: any) {
+            console.warn(`SSR: API base ${candidate.base} failed:`, err.message);
           }
-        } catch (err: any) {
-          console.warn('SSR failed to fetch shop setting by domain, trying local file:', err.message);
+        }
+
+        if (!resolved) {
+          console.warn('SSR: all API bases failed, trying local settings file');
           const port = process.env['PORT'] || '4220';
           const url = `http://localhost:${port}/shop-settings.json?v=${new Date().getTime()}`;
           newConfig = await firstValueFrom(this.http.get(url));
+          // Point component-level API calls at the public API rather than an
+          // internal address that just failed — routing them back into this
+          // gateway's own proxy would loop with a localhost Host header.
+          setSsrApiBase(`https://api.${domain}`);
         }
       }
 
@@ -125,45 +154,15 @@ export class AppConfigService {
       } else {
       }
 
-      // Merge remote settings (blog, productSetting, themeColors, etc.) using active shop id
+      // Merge remote settings (adds `blog` etc.) in the background — the base
+      // config from get-setting-by-domain already carries every field needed
+      // to boot the app, so blocking first paint (and SSR render) on this
+      // second round trip only added ~1s to every cold load.
       const shopId = (this.config as any)?.shop;
       if (shopId) {
-        try {
-          // Fetch remote settings including theme customization
-          const remote = await firstValueFrom(
-            this.settingService.getSetting('blog productSetting themeColors themeViewSettings searchHints orderLanguage pageViewSettings', shopId)
-          );
-          if (remote?.success && remote?.data) {
-            const remoteData = remote.data as any;
-
-            // Merge remote data into existing config
-            this.config = {
-              ...(this.config || {}),
-              productSetting: {
-                ...((this.config as any)?.productSetting || {}),
-                ...(remoteData.productSetting || {}),
-              },
-              blog: remoteData.blog ?? (this.config as any)?.blog,
-              // Merge theme customization settings
-              themeColors: remoteData.themeColors ?? (this.config as any)?.themeColors,
-              themeViewSettings: remoteData.themeViewSettings ?? (this.config as any)?.themeViewSettings,
-              pageViewSettings: remoteData.pageViewSettings ?? (this.config as any)?.pageViewSettings,
-              searchHints: remoteData.searchHints ?? (this.config as any)?.searchHints,
-              orderLanguage: remoteData.orderLanguage ?? (this.config as any)?.orderLanguage,
-            };
-
-            this.configSubject.next(this.config);
-            if (isPlatformBrowser(this.platformId)) {
-              localStorage.setItem(
-                this.CONFIG_KEY,
-                JSON.stringify(this.config)
-              );
-            }
-          }
-        } catch (e) {
-          // Swallow remote setting merge failure; continue with local config
-          console.warn('Failed to merge remote settings', e);
-        }
+        this.mergeRemoteSettings(shopId).catch((e) =>
+          console.warn('Failed to merge remote settings', e)
+        );
       }
 
       // Setup Pixel & Tag Manager
@@ -192,6 +191,43 @@ export class AppConfigService {
       }
     } catch (error) {
       console.error('⚠️ Error fetching config:', error);
+    }
+  }
+
+  /**
+   * Background merge of extended settings (blog, productSetting, theme
+   * customization). Never awaited by the boot path — see checkForUpdates().
+   */
+  private async mergeRemoteSettings(shopId: string): Promise<void> {
+    const remote = await firstValueFrom(
+      this.settingService.getSetting(
+        'blog productSetting themeColors themeViewSettings searchHints orderLanguage pageViewSettings',
+        shopId
+      )
+    );
+    if (!remote?.success || !remote?.data) {
+      return;
+    }
+    const remoteData = remote.data as any;
+
+    // Merge remote data into existing config
+    this.config = {
+      ...(this.config || {}),
+      productSetting: {
+        ...((this.config as any)?.productSetting || {}),
+        ...(remoteData.productSetting || {}),
+      },
+      blog: remoteData.blog ?? (this.config as any)?.blog,
+      themeColors: remoteData.themeColors ?? (this.config as any)?.themeColors,
+      themeViewSettings: remoteData.themeViewSettings ?? (this.config as any)?.themeViewSettings,
+      pageViewSettings: remoteData.pageViewSettings ?? (this.config as any)?.pageViewSettings,
+      searchHints: remoteData.searchHints ?? (this.config as any)?.searchHints,
+      orderLanguage: remoteData.orderLanguage ?? (this.config as any)?.orderLanguage,
+    };
+
+    this.configSubject.next(this.config);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(this.CONFIG_KEY, JSON.stringify(this.config));
     }
   }
 

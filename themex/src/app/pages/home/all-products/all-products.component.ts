@@ -1,4 +1,5 @@
 import {Component, ElementRef, inject, Input, OnDestroy, OnInit, PLATFORM_ID} from '@angular/core';
+import {ActivatedRoute} from '@angular/router';
 import {AppConfigService} from "../../../services/core/app-config.service";
 import {ProductService} from "../../../services/common/product.service";
 import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
@@ -62,6 +63,7 @@ export class AllProductsComponent implements OnInit, OnDestroy {
   private readonly appConfigService = inject(AppConfigService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly productService = inject(ProductService);
+  private readonly route = inject(ActivatedRoute);
   private readonly el = inject(ElementRef);
   private readonly breakpointObserver = inject(BreakpointObserver);
 
@@ -73,7 +75,14 @@ export class AllProductsComponent implements OnInit, OnDestroy {
     this.getSettingData();
     this.shopId = this.appConfigService.getSettingData('shop');
 
-    if (isPlatformBrowser(this.platformId)) {
+    // Products prefetched by the home resolver (SSR render or TransferState
+    // replay) — paint them immediately and skip the initial request.
+    const resolved: any = this.route.snapshot.data['homeProducts'];
+    if (resolved && resolved.data) {
+      this.products = resolved.data;
+      this.totalProducts = resolved.count;
+      this.isLoading = false;
+    } else if (isPlatformBrowser(this.platformId)) {
       this.setupIntersectionObserver();
     } else {
       // Fallback for SSR - Load without intersection
@@ -126,7 +135,14 @@ export class AllProductsComponent implements OnInit, OnDestroy {
   }
 
   loadProducts() {
-    const delayTime = this.index * 200; // 200ms delay per tag index
+    // SSR: start the HTTP request immediately — wrapping it in timer()
+    // pushed the request past the server render, so the pre-rendered HTML
+    // shipped with skeletons and every visitor re-fetched on the client.
+    if (!isPlatformBrowser(this.platformId)) {
+      this.getAllProducts();
+      return;
+    }
+    const delayTime = this.index * 200; // 200ms stagger per tag index
     timer(delayTime).subscribe(() => { // Adds a 200ms delay before loading products
       this.getAllProducts();
     });

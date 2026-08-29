@@ -23,7 +23,6 @@ import {FooterXl1Component} from "../../shared/components/core/footer/footer-xl/
 import {FooterXl2Component} from "../../shared/components/core/footer/footer-xl/footer-xl-2/footer-xl-2.component";
 import {FooterXl3Component} from "../../shared/components/core/footer/footer-xl/footer-xl-3/footer-xl-3.component";
 import {BlogComponent} from "./blog/blog.component";
-import {SettingService} from "../../services/common/setting.service";
 import {CategoriesComponent} from "./categories/categories.component";
 import {ReturnPolicyComponent} from "./return-policy/return-policy.component";
 import {NotificationCardComponent} from "../../shared/components/notification-card/notification-card.component";
@@ -85,10 +84,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   private readonly seoPageService = inject(SeoPageService);
   private readonly notificationService = inject(UserNotificatinService);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly settingService = inject(SettingService);
 
   // Subscriptions
   private subscriptions: Subscription[] = [];
+  private notificationsRequested = false;
 
   ngOnInit(): void {
     // Theme Settings
@@ -129,17 +128,15 @@ export class HomeComponent implements OnInit, OnDestroy {
    * getShopInfo()
    */
   private getShopInfo() {
-    setTimeout(() => {
-      const subscription = this.shopInfoService.getShopInformation().subscribe({
-        next: res => {
-          this.shopInfo = res.data;
-        },
-        error: err => {
-          console.error(err);
-        }
-      });
-      this.subscriptions?.push(subscription);
-    }, 500); // 2 seconds delay
+    const subscription = this.shopInfoService.getShopInformation().subscribe({
+      next: res => {
+        this.shopInfo = res.data;
+      },
+      error: err => {
+        console.error(err);
+      }
+    });
+    this.subscriptions?.push(subscription);
   }
 
   private getAllSeoPage() {
@@ -306,20 +303,21 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private getSetting() {
-    const subscription = this.settingService.getSetting('blog productSetting')
-      .subscribe({
-        next: res => {
-          this.isEnableBlog = res.data?.blog?.isEnableBlog;
-          this.isShowCategoryOnHomePage = res.data?.productSetting?.isShowCategoryOnHomePage;
-          this.isEnableUserNotification= res.data?.productSetting?.isEnableUserNotification;
-          if (this.isEnableUserNotification) {
-            this.getAllNotification();
-          }
-        },
-        error: err => {
-          console.log(err)
-        }
-      });
+    // Read from the app config (already loaded during APP_INITIALIZER and
+    // refreshed in the background) instead of firing another settings HTTP
+    // request on every home page view.
+    const subscription = this.appConfigService.config$.subscribe(config => {
+      if (!config) {
+        return;
+      }
+      this.isEnableBlog = config.blog?.isEnableBlog;
+      this.isShowCategoryOnHomePage = config.productSetting?.isShowCategoryOnHomePage;
+      this.isEnableUserNotification = config.productSetting?.isEnableUserNotification;
+      if (this.isEnableUserNotification && !this.notificationsRequested) {
+        this.notificationsRequested = true;
+        this.getAllNotification();
+      }
+    });
     this.subscriptions.push(subscription);
   }
 
