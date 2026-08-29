@@ -65,7 +65,7 @@
                   "maximumError": "5mb"
                 }
               ],
-              "baseHref": "/admin/",
+              "baseHref": "/",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
