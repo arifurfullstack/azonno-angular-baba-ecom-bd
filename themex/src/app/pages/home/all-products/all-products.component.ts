@@ -99,8 +99,7 @@ export class AllProductsComponent implements OnInit, OnDestroy {
 
   private getSettingData() {
     const themeViewSettings: ThemeViewSetting[] = this.appConfigService.getSettingData('themeViewSettings');
-    this.productCardViews = themeViewSettings.find(f => f.type == 'productCardViews').value.join();
-    // console.log("this.productCardViews", this.productCardViews)
+    this.productCardViews = themeViewSettings?.find(f => f.type === 'productCardViews')?.value?.join() || 'Product Card 1';
   }
 
   setupIntersectionObserver() {

@@ -8,8 +8,8 @@ export const ssrApiRedirectInterceptor: HttpInterceptorFn = (req, next) => {
   if (!isPlatformBrowser(platformId)) {
     // Running on Node.js server during SSR.
     // Rewrite external API requests to local backend (http://localhost:4220) for fast local transport,
-    // while preserving the original public URL in TransferState for browser hydration match.
-    const localTarget = process.env['INTERNAL_API_URL'] || process.env['API_BASE_LINK'] || 'http://localhost:4220';
+    const internalPort = process.env['INTERNAL_API_PORT'] || process.env['PORT_API'] || '3000';
+    const localTarget = process.env['INTERNAL_API_URL'] || process.env['API_BASE_LINK'] || `http://127.0.0.1:${internalPort}`;
     
     if (req.url.startsWith('http://') || req.url.startsWith('https://')) {
       try {

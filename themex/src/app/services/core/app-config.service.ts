@@ -1,6 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { Inject, Injectable, Optional, PLATFORM_ID } from '@angular/core';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { SettingService } from '../common/setting.service';
 import { GtmService } from './gtm.service';
@@ -25,7 +25,8 @@ export class AppConfigService {
     private gtmService: GtmService,
     private scriptLoaderService: ScriptLoaderService,
     private settingService: SettingService,
-    @Inject(PLATFORM_ID) private platformId: any
+    @Inject(PLATFORM_ID) private platformId: any,
+    @Optional() @Inject('REQUEST_DOMAIN') private requestDomain?: string
   ) { }
 
   get currency(): any {
@@ -46,17 +47,24 @@ export class AppConfigService {
       // ✅ Check if it's running in a browser
       const storedConfig = localStorage.getItem(this.CONFIG_KEY);
       if (storedConfig) {
-        this.config = JSON.parse(storedConfig);
-        this.configSubject.next(this.config);
-        // Run background update check to avoid blocking instant application boot
-        this.checkForUpdates().catch((err) =>
-          console.warn('Background config update check failed:', err)
-        );
-        return;
+        try {
+          const parsed = JSON.parse(storedConfig);
+          if (parsed && parsed.shop && typeof parsed.shop === 'string' && parsed.shop.trim() !== '' && parsed.shop !== 'undefined') {
+            this.config = parsed;
+            this.configSubject.next(this.config);
+            // Run background update check to avoid blocking instant application boot
+            this.checkForUpdates().catch((err) =>
+              console.warn('Background config update check failed:', err)
+            );
+            return;
+          }
+        } catch (e) {
+          localStorage.removeItem(this.CONFIG_KEY);
+        }
       }
     }
 
-    // নতুন ডাটা চেক করতে API কল করবে
+    // Await fresh config before application components start initialization
     await this.checkForUpdates();
   }
 
@@ -81,9 +89,24 @@ export class AppConfigService {
           newConfig = await firstValueFrom(this.http.get(url));
         }
       } else {
-        const port = process.env['PORT'] || '4220';
-        const url = `http://localhost:${port}/shop-settings.json?v=${new Date().getTime()}`;
-        newConfig = await firstValueFrom(this.http.get(url));
+        const domain = this.requestDomain || 'theeroticsocial.com';
+        const internalPort = process.env['INTERNAL_API_PORT'] || process.env['PORT_API'] || '3000';
+        const internalApiUrl = process.env['INTERNAL_API_URL'] || `http://127.0.0.1:${internalPort}`;
+        try {
+          const apiResponse = await firstValueFrom(
+            this.http.get<any>(`${internalApiUrl}/api/shop/get-setting-by-domain?domain=${domain}`)
+          );
+          if (apiResponse && apiResponse.success && apiResponse.data) {
+            newConfig = apiResponse.data;
+          } else {
+            throw new Error('API returned success: false');
+          }
+        } catch (err: any) {
+          console.warn('SSR failed to fetch shop setting by domain, trying local file:', err.message);
+          const port = process.env['PORT'] || '4220';
+          const url = `http://localhost:${port}/shop-settings.json?v=${new Date().getTime()}`;
+          newConfig = await firstValueFrom(this.http.get(url));
+        }
       }
 
       if (

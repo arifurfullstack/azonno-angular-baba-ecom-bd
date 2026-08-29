@@ -152,13 +152,19 @@ export function app(): express.Express {
     const isLocal = (headers.host || '').includes('localhost') || (headers.host || '').includes('127.0.0.1');
     const protocol = isLocal ? 'http' : (req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http');
 
+    const host = (headers['x-forwarded-host'] as string) || headers.host || '';
+    const cleanHost = host.replace(/^www\./, '').split(':')[0];
+
     commonEngine
       .render({
         bootstrap: AppServerModule,
         documentFilePath: indexHtml,
         url: `${protocol}://${headers.host}${originalUrl}`,
         publicPath: browserDistFolder,
-        providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
+        providers: [
+          { provide: APP_BASE_HREF, useValue: baseUrl },
+          { provide: 'REQUEST_DOMAIN', useValue: cleanHost }
+        ],
       })
       .then((html) => {
         const cleanHost = (headers.host || '').replace(/^www\./, '');

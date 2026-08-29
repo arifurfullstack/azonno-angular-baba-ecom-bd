@@ -12,11 +12,18 @@ export const authUserInterceptor: HttpInterceptorFn = (req, next) => {
   const authToken = userService.getUserToken();
   const shopId = appConfigService.getSettingData('shop');
 
-// Parse the current query parameters
+  // Parse the current query parameters
   let queryParams = req.params;
 
-  if (!queryParams.has('shop')) {
-    queryParams = queryParams.append('shop', shopId);
+  if (
+    shopId &&
+    typeof shopId === 'string' &&
+    shopId.trim() !== '' &&
+    shopId !== 'undefined' &&
+    shopId !== 'null' &&
+    !queryParams.has('shop')
+  ) {
+    queryParams = queryParams.append('shop', shopId.trim());
   }
 
   // Clone the request with the updated query parameters
