@@ -5,8 +5,13 @@ let adminDomain = '';
 if (isBrowser) {
   const hostname = window.location.hostname;
   const protocol = window.location.protocol;
+  const isLocal = hostname.includes('localhost') || hostname.includes('127.0.0.1');
   adminDomain = hostname;
-  if ((window as any).__env?.apiBaseLink) {
+
+  if (isLocal) {
+    // Local development/preview always uses local origin
+    apiBase = window.location.origin;
+  } else if ((window as any).__env?.apiBaseLink) {
     apiBase = (window as any).__env.apiBaseLink;
     adminDomain = (window as any).__env.adminDomain || hostname;
   } else if (hostname.startsWith('admin.')) {
