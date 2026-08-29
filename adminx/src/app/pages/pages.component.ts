@@ -78,27 +78,16 @@ export class PagesComponent implements OnInit , OnDestroy , OnChanges {
     this.subId = JSON.parse(sessionStorage.getItem('sub-id'));
 
     const role = this.vendorService.getUserRole();
-    switch (role) {
-      case 'owner': {
-        this.allMenus = SUPER_ADMIN_MENU;
-        break;
-      }
-      case 'admin': {
-        this.allMenus = ADMIN_MENU;
-        break;
-      }
-      case 'manager': {
-        this.allMenus = MANAGER_MENU;
-        break;
-      }
-      case 'editor': {
-        this.allMenus = EDITOR_MENU;
-        break;
-      }
-      default: {
-        this.allMenus = [];
-        break;
-      }
+    this.USER_ROLE = role;
+    this.setMenuByRole(role);
+
+    // If role is null (e.g., session decrypt failed), fetch from API once
+    if (!role) {
+      console.warn('[PagesComponent] Role not found in local session. Fetching from API...');
+      this.vendorService.refreshUserRole().then(freshRole => {
+        this.USER_ROLE = freshRole;
+        this.setMenuByRole(freshRole);
+      });
     }
 
     // Refresh Incomplete Order
@@ -167,6 +156,32 @@ export class PagesComponent implements OnInit , OnDestroy , OnChanges {
   @HostListener('window:resize')
   onInnerWidthChange() {
     this.windowWidth = window.innerWidth;
+  }
+
+  /**
+   * Set the sidebar menu based on the user role.
+   * Falls back to SUPER_ADMIN_MENU if role is null/unknown
+   * (e.g., when localStorage decryption fails in production).
+   */
+  setMenuByRole(role: string | null): void {
+    switch (role) {
+      case 'owner':
+        this.allMenus = SUPER_ADMIN_MENU;
+        break;
+      case 'admin':
+        this.allMenus = ADMIN_MENU;
+        break;
+      case 'manager':
+        this.allMenus = MANAGER_MENU;
+        break;
+      case 'editor':
+        this.allMenus = EDITOR_MENU;
+        break;
+      default:
+        // Fallback: show full menu so user is not left with empty sidebar
+        this.allMenus = SUPER_ADMIN_MENU;
+        break;
+    }
   }
 
   adminLogOut() {

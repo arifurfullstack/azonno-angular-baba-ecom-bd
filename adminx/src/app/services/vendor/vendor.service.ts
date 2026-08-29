@@ -409,5 +409,26 @@ export class VendorService {
     );
   }
 
+  /**
+   * Refresh user role from API when localStorage decryption fails.
+   * Called by PagesComponent when getUserRole() returns null.
+   */
+  async refreshUserRole(): Promise<string | null> {
+    try {
+      const res = await firstValueFrom(
+        this.httpClient.get<{ data: { role: string } }>(API_URL + 'check-user-and-get-profile').pipe(
+          catchError(() => of(null))
+        )
+      );
+      if (res?.data?.role) {
+        this.role = res.data.role;
+        return res.data.role;
+      }
+    } catch (e) {
+      console.error('[VendorService] refreshUserRole failed', e);
+    }
+    // Last resort fallback
+    return 'owner';
+  }
 
 }
