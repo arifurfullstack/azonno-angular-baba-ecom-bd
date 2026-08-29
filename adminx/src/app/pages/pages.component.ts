@@ -91,35 +91,17 @@ export class PagesComponent implements OnInit , OnDestroy , OnChanges {
     }
 
     // Refresh Incomplete Order
-    this.reloadService.refreshIncompleteOrder$.subscribe(()=>{
+    const subIncomplete = this.reloadService.refreshIncompleteOrder$.subscribe(()=>{
       this.getSetting();
-    })
+    });
+    this.subscriptions.push(subIncomplete);
 
-    // Subscribe to shop package info changes
-    this.shopPackageService.shopPackageInfo$.subscribe(info => {
-      if (info) {
-        this.getShopInfo();
-      }else {
-        this.getShopInfo();
-      }
-   });
-
-    // this.allMenus = SUPER_ADMIN_MENU;
+    this.getShopInfo();
     this.getSetting();
     this.catalogForMenu();
 
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    // Subscribe to shop package info changes
-    this.shopPackageService.shopPackageInfo$.subscribe(info => {
-      if (info) {
-        this.getShopInfo();
-      }else {
-        this.getShopInfo();
-      }
-    });
-  }
 
   /**
    * ALL SIDE BAR CONTROL METHOD

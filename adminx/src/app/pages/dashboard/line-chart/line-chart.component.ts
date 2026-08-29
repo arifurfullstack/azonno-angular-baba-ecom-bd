@@ -42,6 +42,9 @@ export class LineChartComponent implements OnInit,OnChanges, OnDestroy {
 
 
   private getDashboardSalesData() {
+    if (this.subGetVendorDashboard) {
+      this.subGetVendorDashboard.unsubscribe();
+    }
     this.subGetVendorDashboard = this.dashboardService.getSalesData(this.periodData)
       .subscribe({
         next: res => {

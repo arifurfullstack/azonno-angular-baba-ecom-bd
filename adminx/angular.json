@@ -46,9 +46,7 @@
               ]
             },
             "scripts": [
-              "node_modules/apexcharts/dist/apexcharts.min.js",
-              "crypto-js",
-              "moment"
+              "node_modules/apexcharts/dist/apexcharts.min.js"
             ]
           },
           "configurations": {

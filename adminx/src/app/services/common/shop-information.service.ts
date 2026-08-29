@@ -4,6 +4,8 @@ import {environment} from '../../../environments/environment';
 import {ResponsePayload} from '../../interfaces/core/response-payload.interface';
 import {ShopInformation} from '../../interfaces/common/shop-information.interface';
 import { FilterData } from '../../interfaces/gallery/filter-data';
+import { Observable } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 
 const API_SHOP_INFO = environment.apiBaseLink + '/api/shop-information/';
 
@@ -12,6 +14,8 @@ const API_SHOP_INFO = environment.apiBaseLink + '/api/shop-information/';
   providedIn: 'root'
 })
 export class ShopInformationService {
+
+  private shopInfoCache$: Observable<any> | null = null;
 
   constructor(
     private httpClient: HttpClient
@@ -36,14 +40,31 @@ export class ShopInformationService {
 
 
   getShopInformation(select?: string) {
+    if (this.shopInfoCache$ && !select) {
+      return this.shopInfoCache$;
+    }
+
     let params = new HttpParams();
     if (select) {
       params = params.append('select', select);
     }
-    return this.httpClient.get<{
+    
+    const req = this.httpClient.get<{
       shopType: any;
       trialPeriod: number;
-      data: ShopInformation,fShopDomain:any, message: string, success: boolean, expireDay: any, currentBalance: any }>(API_SHOP_INFO + 'get', {params});
+      data: ShopInformation,fShopDomain:any, message: string, success: boolean, expireDay: any, currentBalance: any }>(API_SHOP_INFO + 'get', {params}).pipe(
+        shareReplay(1)
+      );
+
+    if (!select) {
+      this.shopInfoCache$ = req;
+    }
+
+    return req;
+  }
+
+  clearShopInfoCache() {
+    this.shopInfoCache$ = null;
   }
 
   insertManyShopInformation(data: ShopInformation, option?: any) {
