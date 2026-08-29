@@ -108,7 +108,7 @@
         <mat-form-field appearance="outline">
           <mat-label>Has access</mat-label>
           <mat-select formControlName="hasAccess">
-            <mat-option *ngFor="let data of allStatus" [value]="data.value">
+            <mat-option *ngFor="let data of allStatus; trackBy: trackByFn" [value]="data.value">
               {{ data.viewValue }}
             </mat-option>
           </mat-select>

@@ -11,7 +11,7 @@
     </div>
 
     <!-- Original slides -->
-    <div class="carousel-slide" *ngFor="let slide of slides">
+    <div class="carousel-slide" *ngFor="let slide of slides; trackBy: trackByFn">
       <img [src]="isMobile < 600 && slide?.images[1] ? slide?.images[1] : slide?.images[0]" alt="Slide" />
     </div>
 
@@ -49,7 +49,7 @@
   <!-- Indicators -->
   <div *ngIf="showIndicators" class="carousel-indicators">
     <span
-      *ngFor="let _ of slides; let i = index"
+      *ngFor="let _ of slides; let i = index; trackBy: trackByFn"
       class="indicator"
       [class.active]="i === currentSlideIndex"
       (click)="goToSlide(i)"

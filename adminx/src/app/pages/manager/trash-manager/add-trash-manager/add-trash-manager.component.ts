@@ -244,4 +244,8 @@ export class AddTrashManagerComponent extends adminBaseMixin(Component) implemen
   }
 
 
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

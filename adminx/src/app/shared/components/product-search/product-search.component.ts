@@ -137,4 +137,8 @@ export class ProductSearchComponent implements OnDestroy {
   }
 
 
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

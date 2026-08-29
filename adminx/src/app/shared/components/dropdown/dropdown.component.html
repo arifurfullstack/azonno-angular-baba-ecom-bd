@@ -6,7 +6,7 @@
   <div class="select-items" [class.show]="dropdownOpen" [style.min-width]="minDropdownWidth">
     <button
       type="button"
-      *ngFor="let option of options"
+      *ngFor="let option of options; trackBy: trackByFn"
       [ngClass]="option.class"
       (click)="selectOption($event, option)"
     >

@@ -28,7 +28,7 @@
       <ng-container>
 
         <div class="card-container">
-          <mat-card class="version-card" *ngFor="let data of allTableData">
+          <mat-card class="version-card" *ngFor="let data of allTableData; trackBy: trackByFn">
             <mat-card-header>
 <!--              <div mat-card-avatar class="version-avatar"></div>-->
               <mat-card-title>{{ data.name }}</mat-card-title>

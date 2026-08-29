@@ -310,4 +310,8 @@ export class AddSubCategoryComponent implements OnInit, OnDestroy {
   }
 
 
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

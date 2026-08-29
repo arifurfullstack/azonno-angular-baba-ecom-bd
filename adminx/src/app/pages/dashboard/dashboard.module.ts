@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { DashboardRoutingModule } from './dashboard-routing.module';
 import { DashboardComponent } from './dashboard.component';
 import { ChartComponent } from './chart/chart.component';
-import {NgApexchartsModule} from 'ng-apexcharts';
 import {MenuCardComponent} from '../../shared/components/menu-card/menu-card.component';
 import { SalesInformationComponent } from './sales-information/sales-information.component';
 import { ChartSectionComponent } from './chart-section/chart-section.component';
@@ -43,7 +42,6 @@ import {CurrencyPipe} from "../../shared/pipes/currency.pipe";
         CommonModule,
         DashboardRoutingModule,
         MenuCardComponent,
-        NgApexchartsModule,
         NotificationComponent,
         MaterialModule,
         GalleryImageViewerComponent,

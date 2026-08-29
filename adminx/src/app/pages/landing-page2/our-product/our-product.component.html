@@ -5,7 +5,7 @@
       <span>ছবিতে আমাদের পণ্য</span>
     </div>
     <div class="product-images">
-      <img *ngFor="let image of singleLandingPage.product.images" [src]="image" alt="Product Image">
+      <img *ngFor="let image of singleLandingPage.product.images; trackBy: trackByFn" [src]="image" alt="Product Image">
     </div>
     <!-- Order Button -->
     <button class="order-button" (click)="scrollToPayment()">

@@ -4,7 +4,7 @@
     <h4>Sms Sent When:</h4>
   </div>
   <div class="option-container">
-    <div *ngFor="let key of smsOptionKeys" class="checkbox-item">
+    <div *ngFor="let key of smsOptionKeys; trackBy: trackByFn" class="checkbox-item">
       <mat-checkbox [(ngModel)]="smsSendingOption[key]" color="primary" (ngModelChange)="onSmsSendingOptChange()">
         {{ formatLabel(key) }}
       </mat-checkbox>

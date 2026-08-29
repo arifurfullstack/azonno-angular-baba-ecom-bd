@@ -221,4 +221,8 @@ export class AddDivisionComponent extends adminBaseMixin(Component) implements O
       this.subRouteParam.unsubscribe();
     }
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

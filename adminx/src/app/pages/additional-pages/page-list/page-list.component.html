@@ -1,13 +1,13 @@
 <!--<mat-card>-->
 <!--  <mat-list role="list">-->
-<!--    <mat-list-item *ngFor="let page of allPages" role="listitem"-->
+<!--    <mat-list-item *ngFor="let page of allPages; trackBy: trackByFn" role="listitem"-->
 <!--                   [routerLink]="['../', 'view', page.slug]" [queryParams]="{name:page.name}">{{page.name}}</mat-list-item>-->
 <!--  </mat-list>-->
 <!--</mat-card>-->
 
 <div class="page-list-container">
   <div class="single-page-list"
-       *ngFor="let page of allPages"
+       *ngFor="let page of allPages; trackBy: trackByFn"
        [routerLink]="['../', 'view', page.slug]" [queryParams]="{name:page.name}">
        <p>{{page.name}}</p>
   </div>

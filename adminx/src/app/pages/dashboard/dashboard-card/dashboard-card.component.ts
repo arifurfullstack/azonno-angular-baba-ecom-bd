@@ -1,5 +1,5 @@
 import { DatePipe } from "@angular/common";
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormControl, FormGroup } from "@angular/forms";
 import { MatDatepickerInputEvent } from "@angular/material/datepicker";
 import { Subscription } from "rxjs";
@@ -17,7 +17,8 @@ import { VendorService } from "../../../services/vendor/vendor.service";
   selector: 'app-dashboard-card',
   templateUrl: './dashboard-card.component.html',
   styleUrl: './dashboard-card.component.scss',
-  providers: [DatePipe]
+  providers: [DatePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardCardComponent implements OnInit, OnDestroy {
 
@@ -54,6 +55,7 @@ export class DashboardCardComponent implements OnInit, OnDestroy {
   private readonly datePipe = inject(DatePipe);
   private readonly vendorService = inject(VendorService);
   private readonly shopPackageService = inject(ShopPackageService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // Subscriptions
   private subscriptions: Subscription[] = [];
@@ -82,6 +84,7 @@ export class DashboardCardComponent implements OnInit, OnDestroy {
       this.showExpireNotice = !isNoticeHidden && this.isExpire;
 
       this.isDataLoaded = true;
+      this.cdr.markForCheck();
     });
 
     this.subscriptions.push(sub);
@@ -105,6 +108,7 @@ export class DashboardCardComponent implements OnInit, OnDestroy {
         next: res => {
           this.dashboardData = res.data;
           this.courierData = res.courier;
+          this.cdr.markForCheck();
         },
         error: err => {
           console.error('Error fetching dashboard orders:', err);
@@ -122,7 +126,7 @@ export class DashboardCardComponent implements OnInit, OnDestroy {
           // this.dashboardCategoryData = res.data;
           // this.chartFunctionality();
           this.totalProducts = res.data.totalProducts;
-
+          this.cdr.markForCheck();
         },
         error: err => {
           console.error('Error fetching product count:', err);
@@ -282,6 +286,7 @@ export class DashboardCardComponent implements OnInit, OnDestroy {
     this.isExpire = false;
     this.showExpireNotice = false; // <-- Add this line
     sessionStorage.setItem(this.NOTICE_HIDDEN_KEY, 'true');
+    this.cdr.markForCheck();
   }
 
   payNow() {

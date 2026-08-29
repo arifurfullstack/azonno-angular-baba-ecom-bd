@@ -17,7 +17,7 @@
     </div>
 
     <div class="sub-cards">
-      <div class="sub-card" *ngFor="let feature of singleLandingPage?.specifications.slice(1)">
+      <div class="sub-card" *ngFor="let feature of singleLandingPage?.specifications.slice(1); trackBy: trackByFn">
         <h2>{{ feature.title }}</h2>
         <p>{{ feature.value }}</p>
       </div>

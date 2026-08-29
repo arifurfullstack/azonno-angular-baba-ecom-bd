@@ -115,4 +115,8 @@ export class ReplyReviewComponent implements OnInit {
   }
 
 
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

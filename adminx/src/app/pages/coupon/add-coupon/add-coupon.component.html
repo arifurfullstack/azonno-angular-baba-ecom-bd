@@ -40,7 +40,7 @@
         <mat-form-field appearance="outline" >
           <mat-label>Discount Type</mat-label>
           <mat-select formControlName="discountType">
-            <mat-option *ngFor="let data of discountTypes" [value]="data.value">
+            <mat-option *ngFor="let data of discountTypes; trackBy: trackByFn" [value]="data.value">
               {{ data.viewValue }}
             </mat-option>
           </mat-select>

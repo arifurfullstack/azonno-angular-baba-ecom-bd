@@ -32,4 +32,8 @@ export class CharacteristicsComponent {
         this.selectedMenu = 0;
     }
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

@@ -24,7 +24,7 @@
         <mat-label>Package Type</mat-label>
         <mat-select formControlName="type">
           <mat-option> none</mat-option>
-          <mat-option *ngFor="let data of packageTypes" [value]="data.value">
+          <mat-option *ngFor="let data of packageTypes; trackBy: trackByFn" [value]="data.value">
             {{ data.viewValue }}
           </mat-option>
         </mat-select>
@@ -43,7 +43,7 @@
           <mat-label>Discount Type</mat-label>
           <mat-select formControlName="discountType">
             <mat-option> none</mat-option>
-            <mat-option *ngFor="let data of discountTypes" [value]="data.value">
+            <mat-option *ngFor="let data of discountTypes; trackBy: trackByFn" [value]="data.value">
               {{ data.viewValue }}
             </mat-option>
           </mat-select>
@@ -74,7 +74,7 @@
 
         <div class="form-array-container">
           <div formArrayName="features" class="form-array-input">
-            <div class="single-field" *ngFor="let data of featuresDataArray?.controls; let i = index">
+            <div class="single-field" *ngFor="let data of featuresDataArray?.controls; let i = index; trackBy: trackByFn">
 
               <mat-form-field appearance="outline">
                 <mat-label>Features Value {{i + 1}}</mat-label>
@@ -200,7 +200,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Status</mat-label>
         <mat-select formControlName="status">
-          <mat-option *ngFor="let data of dataStatus" [value]="data.value">
+          <mat-option *ngFor="let data of dataStatus; trackBy: trackByFn" [value]="data.value">
             {{ data.viewValue }}
           </mat-option>
         </mat-select>

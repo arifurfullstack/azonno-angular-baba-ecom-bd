@@ -51,4 +51,8 @@ export class TableDetailsDialogComponent {
   closeDialog(): void {
     this.dialogRef.close();
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

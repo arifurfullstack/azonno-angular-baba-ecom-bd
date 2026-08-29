@@ -2,7 +2,7 @@
   <div class="grid">
 <!--    {{thiemeData | json}}-->
 <!--    @for (data of thiemeData;track data){-->
-      <div class="card" *ngFor="let data of themeSelected">
+      <div class="card" *ngFor="let data of themeSelected; trackBy: trackByFn">
         <img [src]="data?.image" alt="Natural Powder product image" class="border-green">
         <h2>{{data?.name}}</h2>
         <div class="button-area">

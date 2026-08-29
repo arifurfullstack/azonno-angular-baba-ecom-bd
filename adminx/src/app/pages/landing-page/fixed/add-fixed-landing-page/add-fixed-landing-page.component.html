@@ -28,7 +28,7 @@
             <div class="stock-info" *ngIf="allTableData[0]?.quantity">In Stock: {{ allTableData[0]?.quantity }}pcs</div>
 <!--            <div class="stock-info" *ngIf="!allTableData[0]?.variationList?.length">In Stock: {{ allTableData[0]?.quantity }}pcs</div>-->
             <div *ngIf="!allTableData[0]?.quantity && allTableData[0]?.variationList?.length" class="custom-variation-list-design">
-              <div *ngFor="let variation of allTableData[0].variationList" class="stock-info">
+              <div *ngFor="let variation of allTableData[0].variationList; trackBy: trackByFn" class="stock-info">
                 In Stock: {{variation?.name}} : {{ variation.quantity }} pcs
               </div>
             </div>
@@ -140,7 +140,7 @@
           </div>
           <div formArrayName="specifications" class="form-array-input">
             <div class="single-field"
-                 *ngFor="let data of specificationDataArray?.controls; let i = index"
+                 *ngFor="let data of specificationDataArray?.controls; let i = index; trackBy: trackByFn"
                  [formGroupName]="i">
               <!--              <mat-form-field appearance="outline">-->
               <!--                <mat-label>Title</mat-label>-->
@@ -211,7 +211,7 @@
           </div>
           <div formArrayName="faqList" class="form-array-input">
             <div class="single-field"
-                 *ngFor="let data of faqDataArray?.controls; let i = index"
+                 *ngFor="let data of faqDataArray?.controls; let i = index; trackBy: trackByFn"
                  [formGroupName]="i">
               <mat-form-field appearance="outline">
                 <mat-label>Question</mat-label>
@@ -259,7 +259,7 @@
           </div>
           <div formArrayName="reviews" class="form-array-input">
             <div class="single-field"
-                 *ngFor="let data of reviewsDataArray?.controls; let i = index"
+                 *ngFor="let data of reviewsDataArray?.controls; let i = index; trackBy: trackByFn"
                  [formGroupName]="i">
 
               <app-gallery-image-picker

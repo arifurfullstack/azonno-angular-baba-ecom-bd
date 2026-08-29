@@ -544,4 +544,8 @@ export class AddVendorComponent extends adminBaseMixin(Component) implements OnI
       this.subFileRemove.unsubscribe();
     }
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

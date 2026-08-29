@@ -339,7 +339,7 @@
 <!--          <mat-label>Select Tag</mat-label>-->
 <!--          <mat-select formControlName="tags" multiple>-->
 <!--            <mat-option-->
-<!--              *ngFor="let data of tags"-->
+<!--              *ngFor="let data of tags; trackBy: trackByFn"-->
 <!--              [value]="data._id"-->
 <!--            >-->
 <!--              {{ data.name }}-->
@@ -361,7 +361,7 @@
               <mat-label>Select Tag</mat-label>
               <mat-select formControlName="tags" multiple>
                 <mat-option
-                  *ngFor="let data of tags"
+                  *ngFor="let data of tags; trackBy: trackByFn"
                   [value]="data._id"
                 >
                   {{ data.name }}

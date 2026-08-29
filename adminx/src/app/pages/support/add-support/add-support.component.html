@@ -5,7 +5,7 @@
     <div class="ticket-type-tab-wrapper">
       <div
         class="ticket-type-card"
-        *ngFor="let type of ticketTypes; let i = index"
+        *ngFor="let type of ticketTypes; let i = index; trackBy: trackByFn"
         [class.selected]="selectedTabIndex === i"
         (click)="selectTicketType(i)"
       >

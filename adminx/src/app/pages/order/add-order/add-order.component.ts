@@ -324,7 +324,7 @@ export class AddOrderComponent  extends DataTableSelectionBase(Component) implem
           time: this.utilsService.getCurrentTime(),
         },
         confirmed: {
-          date: this.dataForm?.value?.orderStatus === 'Confirm' ?? this.utilsService.getDateString(new Date()),
+          date: this.dataForm?.value?.orderStatus === 'Confirm' ? this.utilsService.getDateString(new Date()) : null,
           time: this.utilsService.getCurrentTime(),
         },
         processing: {

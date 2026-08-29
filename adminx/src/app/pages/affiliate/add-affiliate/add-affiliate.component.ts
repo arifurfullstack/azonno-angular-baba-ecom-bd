@@ -631,4 +631,8 @@ export class AddAffiliateComponent extends adminBaseMixin(Component) implements 
       this.subFileRemove.unsubscribe();
     }
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

@@ -288,4 +288,8 @@ export class AddChildCategoryComponent implements OnInit{
       this.subDataThree.unsubscribe();
     }
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

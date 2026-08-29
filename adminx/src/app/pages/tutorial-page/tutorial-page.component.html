@@ -29,13 +29,13 @@
 
     @defer (when !isLoadingData) {
       <ng-container>
-        <div *ngFor="let item of allTableData; let i = index" [@fadeIn]="item.state" class="image-container" (click)="openYoutubeVideoDialog($event,item?.url)">
+        <div *ngFor="let item of allTableData; let i = index; trackBy: trackByFn" [@fadeIn]="item.state" class="image-container" (click)="openYoutubeVideoDialog($event,item?.url)">
           <img [src]="item.image" [alt]="item.name">
           <div class="bottom-info">
             <h2>{{ item.name | titlecase}}</h2>
           </div>
           <div class="keyword-wrapper">
-            <span *ngFor="let keyword of item.keywordArr; let i = index" class="keyword">{{keyword}}</span>
+            <span *ngFor="let keyword of item.keywordArr; let i = index; trackBy: trackByFn" class="keyword">{{keyword}}</span>
           </div>
 
         </div>
@@ -46,7 +46,7 @@
         </div>
       </ng-container>
     } @placeholder(minimum 500ms)  {
-      <app-gallery-loader *ngFor="let image of [].constructor(8); let i = index" ></app-gallery-loader>
+      <app-gallery-loader *ngFor="let image of [].constructor(8); let i = index; trackBy: trackByFn" ></app-gallery-loader>
     }
 
 

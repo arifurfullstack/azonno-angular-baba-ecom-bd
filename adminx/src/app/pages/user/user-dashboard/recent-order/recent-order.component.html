@@ -29,7 +29,7 @@
     </div>
 
     <div class="order-list">
-      <div class="order-item" *ngFor="let order of allTableData">
+      <div class="order-item" *ngFor="let order of allTableData; trackBy: trackByFn">
         <div class="order-image">
           <span class="status">{{ order?.orderedItems?.length }}</span>
           <img (click)="openGallery($event, [order?.orderedItems[0]?.image])" [src]="order?.orderedItems[0]?.image ? order?.orderedItems[0]?.image : '/assets/images/temp/pl_1.png'" alt="Order Image">

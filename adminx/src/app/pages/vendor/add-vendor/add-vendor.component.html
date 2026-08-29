@@ -40,7 +40,7 @@
           <mat-form-field appearance="outline">
             <mat-label>Active Status</mat-label>
             <mat-select formControlName="status">
-              <mat-option *ngFor="let data of allStatus" [value]="data.value">
+              <mat-option *ngFor="let data of allStatus; trackBy: trackByFn" [value]="data.value">
                 {{ data.viewValue }}
               </mat-option>
             </mat-select>
@@ -58,7 +58,7 @@
 <!--              <mat-form-field appearance="outline">-->
 <!--                <mat-label>Website</mat-label>-->
 <!--                <mat-select formControlName="_id">-->
-<!--                  <mat-option *ngFor="let data of shops" [value]="data._id">-->
+<!--                  <mat-option *ngFor="let data of shops; trackBy: trackByFn" [value]="data._id">-->
 <!--                    {{ data.websiteName }}-->
 <!--                  </mat-option>-->
 <!--                </mat-select>-->
@@ -69,7 +69,7 @@
               <mat-form-field appearance="outline">
                 <mat-label>Role</mat-label>
                 <mat-select formControlName="role">
-                  <mat-option *ngFor="let data of roles" [value]="data.value">
+                  <mat-option *ngFor="let data of roles; trackBy: trackByFn" [value]="data.value">
                     {{ data.viewValue }}
                   </mat-option>
                 </mat-select>
@@ -80,7 +80,7 @@
               <mat-form-field appearance="outline">
                 <mat-label>Pages</mat-label>
                 <mat-select formControlName="pages" multiple>
-                  <mat-option *ngFor="let data of pages" [value]="data.value">
+                  <mat-option *ngFor="let data of pages; trackBy: trackByFn" [value]="data.value">
                     {{ data.viewValue }}
                   </mat-option>
                 </mat-select>
@@ -90,7 +90,7 @@
 <!--              <mat-form-field appearance="outline">-->
 <!--                <mat-label>Permissions</mat-label>-->
 <!--                <mat-select formControlName="permissions" multiple>-->
-<!--                  <mat-option *ngFor="let data of permissions" [value]="data.value">-->
+<!--                  <mat-option *ngFor="let data of permissions; trackBy: trackByFn" [value]="data.value">-->
 <!--                    {{ data.viewValue }}-->
 <!--                  </mat-option>-->
 <!--                </mat-select>-->

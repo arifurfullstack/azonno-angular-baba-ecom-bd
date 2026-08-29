@@ -10,7 +10,7 @@
 
   </div>
   <ul class="dropdown-list" *ngIf="dropdownOpen" [style.max-height]="maxHeight">
-    <li *ngFor="let item of filteredItems"
+    <li *ngFor="let item of filteredItems; trackBy: trackByFn"
         [class.active]="item.name === selectedItem?.name"
         (click)="selectItem(item)">
       {{ item.name }}

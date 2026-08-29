@@ -9,7 +9,7 @@
 
     <div class="order-list">
 
-      <div class="order-item" *ngFor="let item of carts;let i=index">
+      <div class="order-item" *ngFor="let item of carts;let i=index; trackBy: trackByFn">
         <div class="order-image">
           <!--          <span class="status">{{ item?.orderedItems?.length }}</span>-->
           <img (click)="openGallery($event, [item?.product?.images[0]])"
@@ -38,7 +38,7 @@
 
     <div class="order-list">
 
-      <div class="order-item" *ngFor="let item of wishlists;let i=index">
+      <div class="order-item" *ngFor="let item of wishlists;let i=index; trackBy: trackByFn">
         <div class="order-image">
           <!--          <span class="status">{{ item?.orderedItems?.length }}</span>-->
           <img (click)="openGallery($event, [item?.product?.images[0]])"

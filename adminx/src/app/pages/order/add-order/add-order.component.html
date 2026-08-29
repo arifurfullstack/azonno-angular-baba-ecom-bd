@@ -49,7 +49,7 @@
             formControlName="division"
             (selectionChange)="onChangeRegion($event)"
           >
-            <mat-option [value]="d?._id" *ngFor="let d of divisions">{{
+            <mat-option [value]="d?._id" *ngFor="let d of divisions; trackBy: trackByFn">{{
                 d?.name
               }}</mat-option>
           </mat-select>
@@ -64,7 +64,7 @@
 <!--            formControlName="area"-->
 <!--            (selectionChange)="onChangeArea($event)"-->
 <!--          >-->
-<!--            <mat-option [value]="a?._id" *ngFor="let a of area">{{-->
+<!--            <mat-option [value]="a?._id" *ngFor="let a of area; trackBy: trackByFn">{{-->
 <!--                a?.name-->
 <!--              }}</mat-option>-->
 <!--          </mat-select>-->
@@ -74,7 +74,7 @@
 <!--        <mat-form-field appearance="outline">-->
 <!--          <mat-label>Zone</mat-label>-->
 <!--          <mat-select formControlName="zone">-->
-<!--            <mat-option [value]="z?._id" *ngFor="let z of zone">{{-->
+<!--            <mat-option [value]="z?._id" *ngFor="let z of zone; trackBy: trackByFn">{{-->
 <!--                z?.name-->
 <!--              }}</mat-option>-->
 <!--          </mat-select>-->
@@ -93,7 +93,7 @@
         <mat-form-field appearance="outline">
           <mat-label>Order Status</mat-label>
           <mat-select formControlName="orderStatus">
-            <mat-option *ngFor="let data of orderStatus" [value]="data.value">
+            <mat-option *ngFor="let data of orderStatus; trackBy: trackByFn" [value]="data.value">
               {{ data.viewValue }}
             </mat-option>
           </mat-select>
@@ -104,7 +104,7 @@
         <mat-form-field appearance="outline">
           <mat-label>Payment Status</mat-label>
           <mat-select formControlName="paymentStatus">
-            <mat-option *ngFor="let data of paymentStatus" [value]="data.value">
+            <mat-option *ngFor="let data of paymentStatus; trackBy: trackByFn" [value]="data.value">
               {{ data.viewValue }}
             </mat-option>
           </mat-select>
@@ -115,7 +115,7 @@
         <mat-form-field appearance="outline">
           <mat-label>Payment Type</mat-label>
           <mat-select formControlName="paymentType">
-            <mat-option *ngFor="let data of paymentTypes" [value]="data.value" (click)="orderProviderName(data.viewValue)">
+            <mat-option *ngFor="let data of paymentTypes; trackBy: trackByFn" [value]="data.value" (click)="orderProviderName(data.viewValue)">
               {{ data.viewValue }}
             </mat-option>
           </mat-select>

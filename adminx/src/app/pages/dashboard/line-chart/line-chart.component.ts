@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef} from '@angular/core';
 import { Chart, registerables } from 'chart.js'
 import { Subscription } from 'rxjs';
 import { ThemeControllService } from '../../../services/common/theme-controll.service';
@@ -6,7 +6,8 @@ import {DashboardService} from "../../../services/common/dashboard.service";
 @Component({
   selector: 'app-line-chart',
   templateUrl: './line-chart.component.html',
-  styleUrls: ['./line-chart.component.scss']
+  styleUrls: ['./line-chart.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LineChartComponent implements OnInit,OnChanges, OnDestroy {
   @Input() periodData!: string;
@@ -22,7 +23,8 @@ export class LineChartComponent implements OnInit,OnChanges, OnDestroy {
 
   constructor(
     private themeControlService: ThemeControllService,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private cdr: ChangeDetectorRef
   ) {
     Chart.register(...registerables);
 
@@ -31,7 +33,7 @@ export class LineChartComponent implements OnInit,OnChanges, OnDestroy {
     this.subColor = this.themeControlService.refreshColor$.subscribe((res) => {
       this.selectColor = res;
       this.barChart?.destroy();
-
+      this.cdr.markForCheck();
     });
 
   }
@@ -51,6 +53,7 @@ export class LineChartComponent implements OnInit,OnChanges, OnDestroy {
           this.dashboardSaleData = res.data;
           if (this.dashboardSaleData){
             this.chartFunctionality();
+            this.cdr.markForCheck();
           }
 
         },

@@ -24,13 +24,13 @@
   <!-- IMAGE PREVIEW (Existing or New) -->
   <div class="image-preview-wrapper" *ngIf="images.length > 0 || filePreviews.length > 0">
     <!-- OLD IMAGE -->
-    <div class="thumb" *ngFor="let img of images; let i = index">
+    <div class="thumb" *ngFor="let img of images; let i = index; trackBy: trackByFn">
       <img [src]="img" alt="" />
       <button class="remove-btn" (click)="removeOldImage(i)">×</button>
     </div>
 
     <!-- NEW IMAGE -->
-    <div class="thumb" *ngFor="let preview of filePreviews; let i = index">
+    <div class="thumb" *ngFor="let preview of filePreviews; let i = index; trackBy: trackByFn">
       <img [src]="preview" alt="" />
       <button class="remove-btn" (click)="onRemove(files[i])">×</button>
     </div>

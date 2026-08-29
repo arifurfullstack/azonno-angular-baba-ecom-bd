@@ -1,5 +1,5 @@
 <div class="theme-selector">
-  <button *ngFor="let theme of themes" (click)="selectTheme(theme)">
+  <button *ngFor="let theme of themes; trackBy: trackByFn" (click)="selectTheme(theme)">
     {{ theme.name }}
   </button>
 </div>

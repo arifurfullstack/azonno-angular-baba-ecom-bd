@@ -17,11 +17,11 @@
 
 
 
-  <div *ngFor="let opt of pageCustomOptions; let sectionIndex = index" class="section">
+  <div *ngFor="let opt of pageCustomOptions; let sectionIndex = index; trackBy: trackByFn" class="section">
     <h2 class="section-title">{{ opt.name }} Page</h2>
     <div class="content">
       <div
-        *ngFor="let item of opt.value; let i = index"
+        *ngFor="let item of opt.value; let i = index; trackBy: trackByFn"
         class="view-item"
         [ngClass]="{ 'active-item': item.selected }"
       >

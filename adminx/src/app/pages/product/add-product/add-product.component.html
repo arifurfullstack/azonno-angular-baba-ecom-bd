@@ -229,7 +229,7 @@
                   <mat-label>Brand</mat-label>
                   <mat-select formControlName="brand">
                     <mat-option
-                      *ngFor="let data of brands"
+                      *ngFor="let data of brands; trackBy: trackByFn"
                       [value]="data._id"
                     >
                       {{ data.name }}
@@ -644,7 +644,7 @@
                   <mat-label>Select Category</mat-label>
                   <mat-select formControlName="category" (selectionChange)="onCategorySelect($event)">
                     <mat-option
-                      *ngFor="let data of categories"
+                      *ngFor="let data of categories; trackBy: trackByFn"
                       [value]="data._id"
                     >
                       {{ data.name }}
@@ -663,7 +663,7 @@
                     <mat-label>Select SubCategory</mat-label>
                     <mat-select formControlName="subCategory" (selectionChange)="onSubCategorySelect($event)">
                       <mat-option
-                        *ngFor="let data of subCategories"
+                        *ngFor="let data of subCategories; trackBy: trackByFn"
                         [value]="data._id"
                       >
                         {{ data.name }}
@@ -684,7 +684,7 @@
                     <mat-label>Select ChildCategory</mat-label>
                     <mat-select formControlName="childCategory">
                       <mat-option
-                        *ngFor="let data of childCategories"
+                        *ngFor="let data of childCategories; trackBy: trackByFn"
                         [value]="data._id"
                       >
                         {{ data.name }}
@@ -705,7 +705,7 @@
                     <mat-label>Select Skin Type</mat-label>
                     <mat-select formControlName="skinType">
                       <mat-option
-                        *ngFor="let data of skinTypes"
+                        *ngFor="let data of skinTypes; trackBy: trackByFn"
                         [value]="data._id"
                       >
                         {{ data.name }}
@@ -726,7 +726,7 @@
                     <mat-label>Select Skin Concern</mat-label>
                     <mat-select formControlName="skinConcern">
                       <mat-option
-                        *ngFor="let data of skinConcerns"
+                        *ngFor="let data of skinConcerns; trackBy: trackByFn"
                         [value]="data._id"
                       >
                         {{ data.name }}
@@ -777,7 +777,7 @@
                   <mat-label>Select Tag</mat-label>
                   <mat-select formControlName="tags" multiple>
                     <mat-option
-                      *ngFor="let data of tags"
+                      *ngFor="let data of tags; trackBy: trackByFn"
                       [value]="data._id"
                     >
                       {{ data.name }}

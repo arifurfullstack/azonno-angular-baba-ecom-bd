@@ -15,7 +15,7 @@
     </div>
     <div class="text-box slide-left" *ngIf="singleLandingPage?.specifications?.length" #textBox [ngClass]="{ 'slide-left': textVisible }">
       <ul>
-        <li *ngFor="let feature of singleLandingPage?.specifications" class="color">{{ feature.title }}</li>
+        <li *ngFor="let feature of singleLandingPage?.specifications; trackBy: trackByFn" class="color">{{ feature.title }}</li>
       </ul>
     </div>
   </div>

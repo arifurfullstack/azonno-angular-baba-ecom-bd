@@ -38,7 +38,7 @@
 
       <div class="menu">
         <ul>
-          <li *ngFor="let menu of allMenus">
+          <li *ngFor="let menu of allMenus; trackBy: trackByFn">
 
             <ng-container *ngIf="!menu.hasSubMenu">
               <div class="menu-item" #dashboard (click)="subMenuToggle(menu.id)" routerLinkActive="link-active"
@@ -74,7 +74,7 @@
                 <ul>
                   <li class="hover-title no-select"><a>{{ menu.name }}</a></li>
                   <li class="sub-link-li" routerLinkActive="sub-link-active" [routerLink]="subMenu.routerLink"
-                    *ngFor="let subMenu of menu.subMenus">
+                    *ngFor="let subMenu of menu.subMenus; trackBy: trackByFn">
                     <a class="no-select" (click)="windowWidth < 1200 ? sideNavToggle() : ''">
                       <span class="material-icons">
                         {{ subMenu.icon }} </span>

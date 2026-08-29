@@ -25,4 +25,8 @@ export class PaymentAreaComponent {
     this.isDivisionDropdownOpen = false;
   }
   
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

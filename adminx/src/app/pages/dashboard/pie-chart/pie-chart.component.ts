@@ -1,4 +1,4 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef} from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { Subscription } from 'rxjs';
 import { ThemeControllService } from '../../../services/common/theme-controll.service';
@@ -7,7 +7,8 @@ import {DashboardService} from "../../../services/common/dashboard.service";
 @Component({
   selector: 'app-pie-chart',
   templateUrl: './pie-chart.component.html',
-  styleUrls: ['./pie-chart.component.scss']
+  styleUrls: ['./pie-chart.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PieChartComponent implements OnInit, OnDestroy {
   selectColor: any;
@@ -21,6 +22,7 @@ export class PieChartComponent implements OnInit, OnDestroy {
 
 
   private readonly dashboardService = inject(DashboardService);
+  private readonly cdr = inject(ChangeDetectorRef);
   constructor(
     private themeControlService: ThemeControllService
   ) {
@@ -30,6 +32,7 @@ export class PieChartComponent implements OnInit, OnDestroy {
     this.subColor = this.themeControlService.refreshColor$.subscribe((res) => {
       this.selectColor = res;
       this.pieChart?.destroy();
+      this.cdr.markForCheck();
       // this.chartFunctionality();
     });
 
@@ -46,6 +49,7 @@ export class PieChartComponent implements OnInit, OnDestroy {
         next: res => {
           this.dashboardCategoryData = res.data;
           this.chartFunctionality();
+          this.cdr.markForCheck();
         },
         error: err => {
           console.log(err)

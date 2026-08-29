@@ -245,4 +245,8 @@ export class PageViewComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.subscriptions.forEach(sub => sub?.unsubscribe());
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

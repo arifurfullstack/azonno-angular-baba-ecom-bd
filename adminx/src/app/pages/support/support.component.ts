@@ -287,4 +287,8 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub?.unsubscribe());
   }
 
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

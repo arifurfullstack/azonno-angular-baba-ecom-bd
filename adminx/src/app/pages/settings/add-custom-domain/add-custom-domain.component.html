@@ -37,7 +37,7 @@
 
     <!-- Local Domain Menu -->
     <mat-menu #localMenu="matMenu">
-      <ng-container *ngFor="let domain of localDomains">
+      <ng-container *ngFor="let domain of localDomains; trackBy: trackByFn">
         <a mat-menu-item [href]="domain.url" target="_blank">{{ domain.name }}</a>
       </ng-container>
     </mat-menu>

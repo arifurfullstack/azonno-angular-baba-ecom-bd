@@ -24,7 +24,7 @@
         <mat-label>Category</mat-label>
         <mat-form-field appearance="outline" class="w-100 px-1">
           <mat-select formControlName="category" required (selectionChange)="onCategorySelect($event)">
-            <mat-option *ngFor="let data of categories" [value]="data._id">
+            <mat-option *ngFor="let data of categories; trackBy: trackByFn" [value]="data._id">
               {{data.name}}
             </mat-option>
           </mat-select>
@@ -36,7 +36,7 @@
         <mat-label>Sub Category</mat-label>
         <mat-form-field appearance="outline">
           <mat-select formControlName="subCategory" required>
-            <mat-option *ngFor="let data of subCategories" [value]="data._id">
+            <mat-option *ngFor="let data of subCategories; trackBy: trackByFn" [value]="data._id">
               {{data.name}}
             </mat-option>
           </mat-select>

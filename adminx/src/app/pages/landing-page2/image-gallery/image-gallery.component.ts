@@ -44,4 +44,8 @@ export class ImageGalleryComponent implements OnInit, OnChanges {
   selectImage(index: number) {
     this.currentIndex = index;
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

@@ -1,12 +1,4 @@
 import {Component, ViewChild} from '@angular/core';
-import {
-  ApexAxisChartSeries,
-  ApexChart,
-  ApexXAxis,
-  ApexDataLabels,
-  ApexTooltip,
-  ApexStroke
-} from "ng-apexcharts";
 import {Chart, ChartConfiguration, ChartOptions} from "chart.js";
 
 // export type ChartOptions = {

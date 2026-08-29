@@ -20,7 +20,7 @@
 </div>
 
   <div class="images">
-    <div class="img-thumb" *ngFor="let img of pickedImages; let i = index">
+    <div class="img-thumb" *ngFor="let img of pickedImages; let i = index; trackBy: trackByFn">
       <img [src]="img" alt="">
       <mat-icon (click)="onRemovePickedImage(i)">close</mat-icon>
     </div>

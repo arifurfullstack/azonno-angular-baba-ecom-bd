@@ -51,7 +51,7 @@
 
       </div>
       <div formArrayName="addresses" class="form-array-input">
-        <div class="single-field" *ngFor="let data of addressesDataArray?.controls; let i = index" [formGroupName]="i">
+        <div class="single-field" *ngFor="let data of addressesDataArray?.controls; let i = index; trackBy: trackByFn" [formGroupName]="i">
 
           <mat-form-field appearance="outline">
             <mat-label>Type Address {{i + 1}}</mat-label>
@@ -73,7 +73,7 @@
 
       </div>
       <div formArrayName="emails" class="form-array-input">
-        <div class="single-field" *ngFor="let data of emailsDataArray?.controls; let i = index" [formGroupName]="i">
+        <div class="single-field" *ngFor="let data of emailsDataArray?.controls; let i = index; trackBy: trackByFn" [formGroupName]="i">
 
           <mat-form-field appearance="outline">
             <mat-label>Type Email {{i + 1}}</mat-label>
@@ -95,7 +95,7 @@
 
       </div>
       <div formArrayName="phones" class="form-array-input">
-        <div class="single-field" *ngFor="let data of phonesDataArray?.controls; let i = index" [formGroupName]="i">
+        <div class="single-field" *ngFor="let data of phonesDataArray?.controls; let i = index; trackBy: trackByFn" [formGroupName]="i">
 
           <mat-form-field appearance="outline">
             <mat-label>Type Phone No {{i + 1}}</mat-label>
@@ -118,12 +118,12 @@
 
       </div>
       <div formArrayName="socialLinks" class="form-array-input">
-        <div class="single-field" *ngFor="let data of socialLinksArray?.controls; let i = index" [formGroupName]="i">
+        <div class="single-field" *ngFor="let data of socialLinksArray?.controls; let i = index; trackBy: trackByFn" [formGroupName]="i">
 
           <mat-form-field appearance="outline">
             <mat-label>Select Social Network {{i + 1}}</mat-label>
             <mat-select formControlName="type" required>
-              <mat-option *ngFor="let m of socialTypes" [value]="m.value">
+              <mat-option *ngFor="let m of socialTypes; trackBy: trackByFn" [value]="m.value">
                 {{m.viewValue}}
               </mat-option>
             </mat-select>

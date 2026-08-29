@@ -302,4 +302,8 @@ export class AddZoneComponent extends adminBaseMixin(Component) implements OnIni
       this.subRouteParam.unsubscribe();
     }
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

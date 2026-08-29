@@ -47,4 +47,8 @@ export class PageListComponent implements OnInit {
       ]
     })
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

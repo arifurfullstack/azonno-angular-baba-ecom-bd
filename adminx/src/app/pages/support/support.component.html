@@ -18,7 +18,7 @@
 
   <div class="support-filter-tabs">
     <button
-      *ngFor="let t of filterTabs"
+      *ngFor="let t of filterTabs; trackBy: trackByFn"
       class="filter-tab"
       [class.active]="activeTab === t.key"
       (click)="onFilterChange(t.key)"
@@ -35,7 +35,7 @@
     @defer (when !isLoadingData) {
       <ng-container>
 
-        <div *ngFor="let item of allTableData; let i = index" [@fadeIn]="item.state" class="support-data-card" (click)="openFullView(item)">
+        <div *ngFor="let item of allTableData; let i = index; trackBy: trackByFn" [@fadeIn]="item.state" class="support-data-card" (click)="openFullView(item)">
           <div class="card-header">
             <div>
               <span matTooltip="Support Type" class="type-badge" [ngClass]="item?.type">{{ item?.type }}</span>
@@ -113,7 +113,7 @@
         </div>
       </ng-container>
     } @placeholder(minimum 500ms)  {
-      <app-gallery-loader *ngFor="let image of [].constructor(8); let i = index" ></app-gallery-loader>
+      <app-gallery-loader *ngFor="let image of [].constructor(8); let i = index; trackBy: trackByFn" ></app-gallery-loader>
     }
 
 
@@ -180,7 +180,7 @@
       <div class="dialog-desc" [innerHTML]="data?.description | safeHtmlCustom"></div>
 
       <div *ngIf="data?.images?.length" class="dialog-image">
-        <img *ngFor="let image of data?.images" [src]="image" alt="support image" />
+        <img *ngFor="let image of data?.images; trackBy: trackByFn" [src]="image" alt="support image" />
       </div>
     </div>
   </div>

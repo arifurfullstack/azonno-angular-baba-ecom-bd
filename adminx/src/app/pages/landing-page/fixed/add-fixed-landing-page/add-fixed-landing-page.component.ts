@@ -517,4 +517,8 @@ export class AddFixedLandingPageComponent implements OnInit, OnDestroy {
 
   // protected readonly bannerType = BANNER_TYPE;
   protected readonly showType = ShowType;
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

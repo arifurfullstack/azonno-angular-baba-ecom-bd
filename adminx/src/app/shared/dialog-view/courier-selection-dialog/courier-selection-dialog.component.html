@@ -4,7 +4,7 @@
   <div class="courier-list" *ngIf="courierMethods && courierMethods.length; else noCourier">
     <div
       class="courier-card"
-      *ngFor="let courier of courierMethods"
+      *ngFor="let courier of courierMethods; trackBy: trackByFn"
       [class.selected]="courier === selectedCourier"
       (click)="selectCourier(courier)"
     >

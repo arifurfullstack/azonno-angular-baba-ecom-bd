@@ -238,5 +238,9 @@ export class AddSubCategoryComponent implements OnInit{
       this.subDataFour.unsubscribe();
     }
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }
 

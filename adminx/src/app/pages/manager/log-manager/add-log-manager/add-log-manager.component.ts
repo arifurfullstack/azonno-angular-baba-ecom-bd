@@ -240,4 +240,8 @@ export class AddLogManagerComponent extends adminBaseMixin(Component) implements
     this.subscriptions.forEach(sub => sub?.unsubscribe());
   }
 
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

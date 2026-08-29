@@ -68,4 +68,8 @@ export class UserDashboardComponent implements OnInit {
     this.subscriptions.forEach(sub => sub?.unsubscribe());
   }
 
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

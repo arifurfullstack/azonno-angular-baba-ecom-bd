@@ -23,7 +23,7 @@
   </form>
 
   <div class="search-results" [ngClass]="{'has-results': searchProducts.length > 0}">
-    <div class="search-item" *ngFor="let item of searchProducts" (click)="onSelectItem(item)">
+    <div class="search-item" *ngFor="let item of searchProducts; trackBy: trackByFn" (click)="onSelectItem(item)">
       <img [src]="item.images && item.images.length ? item.images[0] : ''" alt="product image" />
       <div class="item-info">
         <h3>{{ item.name }}</h3>
@@ -35,7 +35,7 @@
       </div>
       <div class="stock-info" *ngIf="item.quantity">In Stock: {{ item.quantity }}pcs</div>
       <div *ngIf="!item.quantity && item.variationList?.length" class="custom-variation-list-design">
-        <div *ngFor="let variation of item.variationList" class="stock-info">
+        <div *ngFor="let variation of item.variationList; trackBy: trackByFn" class="stock-info">
           In Stock: {{variation?.name}} : {{ variation.quantity }} pcs
         </div>
       </div>

@@ -15,7 +15,7 @@
 
   <mat-divider></mat-divider>
 
-  <div *ngFor="let note of order?.customerNotes.slice().reverse(); let i = index" class="note-box">
+  <div *ngFor="let note of order?.customerNotes.slice().reverse(); let i = index; trackBy: trackByFn" class="note-box">
     <p class="note-date">{{ note.updatedAt | date: 'dd MMM, yyyy' }}</p>
     <p class="note-text">{{ note.note }}</p>
     <div class="note-actions">

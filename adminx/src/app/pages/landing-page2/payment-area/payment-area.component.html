@@ -11,7 +11,7 @@
             <h3 class="product-title">{{ singleLandingPage.product.name }}</h3>
           </div>
           <ul *ngIf="singleLandingPage.product.variationList?.length">
-            <li class="increment-btn" *ngFor="let variation of singleLandingPage.product.variationList">
+            <li class="increment-btn" *ngFor="let variation of singleLandingPage.product.variationList; trackBy: trackByFn">
               <div class="variant-left">
                 <span>{{ variation.name }}</span>
               </div>
@@ -42,7 +42,7 @@
             <div id="division" class="custom-select" (click)="toggleDivisionDropdown()">
               <div class="custom-select__selected">{{ selectedDivision }}</div>
               <div class="custom-select__options" [class.show]="isDivisionDropdownOpen">
-                <div class="custom-select__option" *ngFor="let division of divisions" (click)="selectDivision(division)">{{ division }}</div>
+                <div class="custom-select__option" *ngFor="let division of divisions; trackBy: trackByFn" (click)="selectDivision(division)">{{ division }}</div>
               </div>
             </div>
           </div>

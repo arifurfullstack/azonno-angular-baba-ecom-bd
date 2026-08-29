@@ -7,7 +7,7 @@
   <!--  </div>-->
 
   <!--  <div class="content1">-->
-  <!--    <ng-container *ngFor="let data of adminMenu">-->
+  <!--    <ng-container *ngFor="let data of adminMenu; trackBy: trackByFn">-->
   <!--      <app-menu-card [data]="data"></app-menu-card>-->
   <!--    </ng-container>-->
   <!--    &lt;!&ndash; END! list-main-cards &ndash;&gt;-->
@@ -39,7 +39,7 @@
 
   <!--  <div class="container">-->
   <!--    <app-notification-->
-  <!--      *ngFor="let notification of notifications"-->
+  <!--      *ngFor="let notification of notifications; trackBy: trackByFn"-->
   <!--      [colorClass]="notification.colorClass"-->
   <!--      [title]="notification.title"-->
   <!--      [message]="notification.message"-->

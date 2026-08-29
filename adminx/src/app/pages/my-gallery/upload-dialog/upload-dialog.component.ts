@@ -208,4 +208,8 @@ export class UploadDialogComponent {
     this.subGetAllFileFolders?.unsubscribe();
     this.subAddFileFolder?.unsubscribe();
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

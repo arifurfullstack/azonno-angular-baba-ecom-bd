@@ -51,7 +51,7 @@
 
         </button>
         <mat-menu #menuFolder="matMenu">
-          <button mat-menu-item *ngFor="let data of fileFolders; let i = index" (click)="filterData(data.name, i, 'folder')"  [class.dropdown-active]="activeFilter1 === i">
+          <button mat-menu-item *ngFor="let data of fileFolders; let i = index; trackBy: trackByFn" (click)="filterData(data.name, i, 'folder')"  [class.dropdown-active]="activeFilter1 === i">
             <mat-icon>folder</mat-icon>
             {{data.name}}
           </button>
@@ -72,7 +72,7 @@
 
     @defer (when !isLoadingData) {
       <ng-container>
-        <div *ngFor="let image of galleries; let i = index" [@fadeIn]="image.state" class="image-container" (click)="toggleSelection(image._id)">
+        <div *ngFor="let image of galleries; let i = index; trackBy: trackByFn" [@fadeIn]="image.state" class="image-container" (click)="toggleSelection(image._id)">
           <img [src]="image.url" [alt]="image.name">
           <div class="info bottom-info">
             <h2>{{ image.name }}</h2>
@@ -93,7 +93,7 @@
         </div>
       </ng-container>
     } @placeholder(minimum 500ms)  {
-      <app-gallery-loader *ngFor="let image of [].constructor(8); let i = index" ></app-gallery-loader>
+      <app-gallery-loader *ngFor="let image of [].constructor(8); let i = index; trackBy: trackByFn" ></app-gallery-loader>
     }
 
 

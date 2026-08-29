@@ -334,4 +334,8 @@ export class AddPackageComponent extends adminBaseMixin(Component) implements On
       this.subRouteParam.unsubscribe();
     }
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

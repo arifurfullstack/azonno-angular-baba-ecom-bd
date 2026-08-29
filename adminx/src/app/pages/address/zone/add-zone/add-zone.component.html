@@ -23,7 +23,7 @@
       <mat-form-field appearance="outline" >
         <mat-label>Select Division</mat-label>
         <mat-select formControlName="division" required (selectionChange)="onDivisionSelect($event)">
-          <mat-option *ngFor="let data of divisions" [value]="data._id">
+          <mat-option *ngFor="let data of divisions; trackBy: trackByFn" [value]="data._id">
             {{data.name}}
           </mat-option>
         </mat-select>
@@ -33,7 +33,7 @@
       <mat-form-field appearance="outline" >
         <mat-label>Select Area</mat-label>
         <mat-select formControlName="area" required>
-          <mat-option *ngFor="let data of areas" [value]="data._id">
+          <mat-option *ngFor="let data of areas; trackBy: trackByFn" [value]="data._id">
             {{data.name}}
           </mat-option>
         </mat-select>
@@ -44,7 +44,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Status</mat-label>
         <mat-select formControlName="status">
-          <mat-option *ngFor="let data of dataStatus" [value]="data.value">
+          <mat-option *ngFor="let data of dataStatus; trackBy: trackByFn" [value]="data.value">
             {{ data.viewValue }}
           </mat-option>
         </mat-select>

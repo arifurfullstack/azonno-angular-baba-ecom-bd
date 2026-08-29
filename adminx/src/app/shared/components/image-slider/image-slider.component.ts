@@ -212,4 +212,8 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
   onGetInnerWidth(): void {
     this.isMobile = window.innerWidth;
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

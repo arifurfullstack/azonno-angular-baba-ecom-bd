@@ -32,7 +32,7 @@ import { VendorService } from "../services/vendor/vendor.service";
     slideInAnimation
   ]
 })
-export class PagesComponent implements OnInit , OnDestroy , OnChanges {
+export class PagesComponent implements OnInit , OnDestroy {
 
   // Store Data
   allMenus: AdminMenu[] = [];
@@ -509,4 +509,8 @@ export class PagesComponent implements OnInit , OnDestroy , OnChanges {
   }
 
 
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

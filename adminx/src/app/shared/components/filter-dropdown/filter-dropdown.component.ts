@@ -137,4 +137,8 @@ export class FilterDropdownComponent implements OnInit, OnChanges {
   };
   onTouched: any = () => {
   };
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

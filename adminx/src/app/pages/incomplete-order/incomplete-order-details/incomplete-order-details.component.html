@@ -183,7 +183,7 @@
         <th>Amount</th>
 
       </tr>
-      <tr *ngFor="let data of order?.orderedItems; let i = index">
+      <tr *ngFor="let data of order?.orderedItems; let i = index; trackBy: trackByFn">
         <td>{{ i + 1 }}</td>
         <td>
           <img

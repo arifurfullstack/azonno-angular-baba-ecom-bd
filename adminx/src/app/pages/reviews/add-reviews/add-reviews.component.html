@@ -41,7 +41,7 @@
       <div class="rating">
         <div class="star-rating">
               <span
-                *ngFor="let star of stars; let i = index"
+                *ngFor="let star of stars; let i = index; trackBy: trackByFn"
                 (click)="rate(i + 1)"
                 (mouseover)="hover(i + 1)"
                 (mouseleave)="hover(0)"
@@ -70,7 +70,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Select Status</mat-label>
         <mat-select formControlName="status" required>
-          <mat-option *ngFor="let data of reviewStatus" [value]="data.value">
+          <mat-option *ngFor="let data of reviewStatus; trackBy: trackByFn" [value]="data.value">
             {{  data.viewValue }}
           </mat-option>
         </mat-select>

@@ -5,7 +5,7 @@
 
     <div [ngClass]="{ 'slide-right': imageVisible }"
       class="faq-item"
-      *ngFor="let faq of singleLandingPage?.faqList; let i = index"
+      *ngFor="let faq of singleLandingPage?.faqList; let i = index; trackBy: trackByFn"
       [class.open]="openedIndex === i"
       (click)="toggleFaq(i)"
     >

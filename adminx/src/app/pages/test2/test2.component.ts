@@ -108,4 +108,8 @@ export class Test2Component {
 
     return tempDiv.innerHTML;
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

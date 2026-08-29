@@ -17,7 +17,7 @@
   <div class="dialog-content">
     <table>
       <tbody>
-      <tr *ngFor="let item of dataArray">
+      <tr *ngFor="let item of dataArray; trackBy: trackByFn">
         <td class="label">{{ item.label }}</td>
         <td class="value">{{ item.value }}</td>
       </tr>

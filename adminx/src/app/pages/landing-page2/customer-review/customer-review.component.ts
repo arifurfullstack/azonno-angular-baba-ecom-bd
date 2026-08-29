@@ -67,4 +67,8 @@ export class CustomerReviewComponent {
     }
   ];
 
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

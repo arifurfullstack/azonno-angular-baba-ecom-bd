@@ -80,7 +80,7 @@
           <p class="border header-style">Total</p>
         </div>
 
-        <div class="product-info-content" *ngFor="let order of invoice.items">
+        <div class="product-info-content" *ngFor="let order of invoice.items; trackBy: trackByFn">
           <p class="border">{{ order?.name }}{{ order?.variation ? ' - ' + order?.variation?.name : '' }}{{order?.phoneModel ? ' - ' + (order?.phoneModel) : '' }}</p>
           <p class="border"><img [src]="order?.image + '?&auto=format&w=384' " alt=""></p>
           <p class="border">{{ (order?.salePrice) | shopCurrency }}</p>

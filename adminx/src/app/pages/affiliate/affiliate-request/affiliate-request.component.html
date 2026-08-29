@@ -36,7 +36,7 @@
     <mat-card-content>
       <div class="cards-grid">
 
-        <mat-card class="saleecom-card" *ngFor="let item of pendingList">
+        <mat-card class="saleecom-card" *ngFor="let item of pendingList; trackBy: trackByFn">
           <img mat-card-image
                [src]="item.affiliate.profileImg ?? '/assets/images/png/placeholder.png'"
                alt="{{item.affiliate.name}}">

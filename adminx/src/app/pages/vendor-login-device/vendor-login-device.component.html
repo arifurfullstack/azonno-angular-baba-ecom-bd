@@ -1,5 +1,5 @@
 <div class="session-grid">
-  <div *ngFor="let session of sessions" class="session-card">
+  <div *ngFor="let session of sessions; trackBy: trackByFn" class="session-card">
     <p><b>Device:</b> {{ session.browserName }} on {{ session.osName }} – {{ session.deviceType | titlecase }}</p>
     <p><b>Login Time:</b> {{ session.createdAt | date: 'medium' }}</p>
 

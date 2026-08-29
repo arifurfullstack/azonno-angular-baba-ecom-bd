@@ -109,4 +109,8 @@ export class VendorLoginDeviceComponent implements OnInit{
   }
 
 
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

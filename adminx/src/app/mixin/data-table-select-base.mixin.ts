@@ -29,7 +29,11 @@ export function DataTableSelectionBase<T extends Type<{}>>(Base: T) {
 
     @ViewChild('matCheckbox') matCheckbox: MatCheckbox | undefined;
 
-    readonly utilsService = inject(UtilsService)
+    readonly utilsService = inject(UtilsService);
+
+    trackByFn(index: number, item: any): any {
+      return item?._id || index;
+    }
 
     checkAndUpdateSelect() {
       if (!this.selectedIds.length) {

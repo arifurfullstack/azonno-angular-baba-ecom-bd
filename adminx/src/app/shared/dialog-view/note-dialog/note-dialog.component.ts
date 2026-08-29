@@ -143,4 +143,8 @@ export class NoteDialogComponent {
       this.subDataUpdate.unsubscribe();
     }
   }
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

@@ -247,4 +247,8 @@ export class AddExpenseComponent extends adminBaseMixin(Component) implements On
     this.subscriptions.forEach(sub => sub?.unsubscribe());
   }
 
+
+  trackByFn(index: number, item: any): any {
+    return item?._id || index;
+  }
 }

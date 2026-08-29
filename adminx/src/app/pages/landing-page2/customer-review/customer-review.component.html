@@ -3,16 +3,16 @@
   <div class="container">
     <h1  class="title">{{ singleLandingPage?.reviewTitle }}</h1>
     <div class="review-grid">
-      <div class="review-card" *ngFor="let data of singleLandingPage?.reviews">
+      <div class="review-card" *ngFor="let data of singleLandingPage?.reviews; trackBy: trackByFn">
         <img [src]="data.image" alt="Reviewer" class="avatar" />
         <div>
           <!-- Loop to create filled stars based on data.rating -->
-          <ng-container *ngFor="let star of [].constructor(data?.rating); let i = index">
+          <ng-container *ngFor="let star of [].constructor(data?.rating); let i = index; trackBy: trackByFn">
             <span class="star filled">&#9733;</span> <!-- Filled star -->
           </ng-container>
 
           <!-- Loop to create empty stars for the remaining rating -->
-          <ng-container *ngFor="let star of [].constructor(5 - data?.rating); let i = index">
+          <ng-container *ngFor="let star of [].constructor(5 - data?.rating); let i = index; trackBy: trackByFn">
             <span class="star empty">&#9734;</span> <!-- Empty star -->
           </ng-container>
         </div>
