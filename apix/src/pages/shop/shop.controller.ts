@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   Logger,
   Param,
   Post, Put,
@@ -160,6 +161,9 @@ export class ShopController {
   }
 
   @Version(VERSION_NEUTRAL)
+  // Public boot-time read — short browser cache is safe (server-side
+  // TtlCache already serves identical data for this TTL window).
+  @Header('Cache-Control', 'public, max-age=60')
   @Get('/get-setting-by-domain')
   async getSettingByDomain(
     @Query('domain') domain: string,

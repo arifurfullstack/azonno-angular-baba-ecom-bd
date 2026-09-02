@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   Logger,
   Param,
   Post,
@@ -38,6 +39,9 @@ export class SeoPageController {
    * getSeoPageBySlug()
    * getSeoPageByIds()
    */
+  // Public storefront read — short browser cache is safe (server-side
+  // TtlCache already serves identical data for this TTL window).
+  @Header('Cache-Control', 'public, max-age=30')
   @Get('/get-all-data')
   @UsePipes(ValidationPipe)
   async getAllTagForUi(
