@@ -19,7 +19,10 @@ export class LanguageService {
   }
 
   private loadTranslations(lang: string) {
-    this.httpClient.get<{ [key: string]: string }>(`/i18n/${lang}.json?v=${new Date().getTime()}`)
+    // No cache-busting timestamp: the URL must stay stable so the browser
+    // can cache the locale file between visits (a `?v=Date.now()` param
+    // forced a fresh ~800ms download on every page load).
+    this.httpClient.get<{ [key: string]: string }>(`/i18n/${lang}.json`)
       .subscribe({
         next: translations => {
           this.translations = translations;
