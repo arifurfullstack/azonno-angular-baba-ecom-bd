@@ -34,12 +34,16 @@ import { Brand } from '../catalog/brand/interfaces/brand.interface';
 import * as fs from 'fs';
 import * as FormData from 'form-data';
 import * as path from 'path';
+import { TtlCacheService } from '../../shared/ttl-cache/ttl-cache.service';
 
 const ObjectId = Types.ObjectId;
 
 @Injectable()
 export class ProductService {
   private logger = new Logger(ProductService.name);
+
+  /** Storefront filter groups (category/subCategory/brand chips) cache TTL. */
+  private static readonly FILTER_GROUP_TTL = 30_000;
 
   constructor(
     @InjectModel('Product') private readonly productModel: Model<Product>,
@@ -58,6 +62,7 @@ export class ProductService {
     private readonly childCategoryModel: Model<SubCategory>,
     @InjectModel('Brand') private brandModel: Model<Brand>,
     private readonly configService: ConfigService,
+    private readonly ttlCache: TtlCacheService,
   ) {
     this.checkExpireEveryday();
   }
@@ -82,6 +87,8 @@ export class ProductService {
     addProductDto: AddProductDto,
   ): Promise<ResponsePayload> {
     try {
+      // The shop's product set is about to change — drop derived caches.
+      this.invalidateProductCaches(shop);
       let fSlug: string;
       let fData: any;
       let finalSlug: string;
@@ -198,6 +205,7 @@ export class ProductService {
     shop: string,
   ): Promise<ResponsePayload> {
     try {
+      this.invalidateProductCaches(shop);
       const insertedProducts = [];
       const failedProducts = [];
 
@@ -608,15 +616,11 @@ export class ProductService {
 
     // Aggregate Stages
     const aggregateStages = [];
-    const aggregateCategoryGroupStages = [];
-    const aggregateBrandGroupStages = [];
-    const aggregateSubCategoryGroupStages = [];
 
     // Essential Variables
     let mFilter = {};
     let mSort = {};
     let mSelect = {};
-    let mPagination = {};
 
     // Match
     if (filter) {
@@ -680,65 +684,88 @@ export class ProductService {
     }
 
     // GROUPING FOR FILTER PRODUCTS
-    let groupCategory: any;
-    let groupBrand: any;
-    let groupSubCategory: any;
-
-    if (filterGroup && filterGroup.isGroup) {
-      if (filterGroup.category) {
-        groupCategory = [
-          {
-            $match: { shop: new ObjectId(filter.shop) }, // Filter by shop ID
-          },
-          {
-            $group: {
-              _id: { category: '$category._id' },
-              name: { $first: '$category.name' },
-              slug: { $first: '$category.slug' },
-              images: { $first: '$category.images' },
-              total: { $sum: 1 },
+    // Shop-wide facets for the storefront filter chips. Deliberately NOT
+    // scoped by mFilter — the chips must list every option for the shop, not
+    // only those matching the current selection. All three groups collapse
+    // into ONE $facet command (was 3 separate full-catalog scans) and the
+    // result is cached briefly — it is identical for every visitor.
+    const wantsGroup =
+      filterGroup &&
+      filterGroup.isGroup &&
+      (filterGroup.category || filterGroup.subCategory || filterGroup.brand);
+    const groupPromise: Promise<{
+      categories: any[];
+      subCategories: any[];
+      brands: any[];
+    }> | null =
+      wantsGroup && filter.shop
+        ? this.ttlCache.wrap(
+            `fg:${filter.shop.toString()}`,
+            ProductService.FILTER_GROUP_TTL,
+            async () => {
+              const facet: Record<string, any> = {};
+              if (filterGroup.category) {
+                facet.categories = [
+                  {
+                    $group: {
+                      _id: { category: '$category._id' },
+                      name: { $first: '$category.name' },
+                      slug: { $first: '$category.slug' },
+                      images: { $first: '$category.images' },
+                      total: { $sum: 1 },
+                    },
+                  },
+                ];
+              }
+              if (filterGroup.subCategory) {
+                facet.subCategories = [
+                  {
+                    $group: {
+                      _id: { subCategory: '$subCategory._id' },
+                      name: { $first: '$subCategory.name' },
+                      slug: { $first: '$subCategory.slug' },
+                      images: { $first: '$subCategory.images' },
+                      total: { $sum: 1 },
+                    },
+                  },
+                ];
+              }
+              if (filterGroup.brand) {
+                facet.brands = [
+                  {
+                    $group: {
+                      _id: { brand: '$brand._id' },
+                      name: { $first: '$brand.name' },
+                      slug: { $first: '$brand.slug' },
+                      images: { $first: '$brand.images' },
+                      total: { $sum: 1 },
+                    },
+                  },
+                ];
+              }
+              const [result] = await this.productModel.aggregate(
+                [{ $match: { shop: filter.shop } }, { $facet: facet }],
+                { allowDiskUse: true },
+              );
+              return {
+                categories: result?.categories ?? [],
+                subCategories: result?.subCategories ?? [],
+                brands: result?.brands ?? [],
+              };
             },
-          },
-        ];
-      }
+          )
+        : null;
 
-      if (filterGroup.brand) {
-        groupBrand = [
-          {
-            $match: { shop: filter.shop }, // Filter by shop ID
-          },
-          {
-            $group: {
-              _id: { brand: '$brand._id' },
-              name: { $first: '$brand.name' },
-              slug: { $first: '$brand.slug' },
-              images: { $first: '$brand.images' },
-              total: { $sum: 1 },
-            },
-          },
-        ];
-      }
-
-      if (filterGroup.subCategory) {
-        groupSubCategory = [
-          {
-            $match: { shop: filter.shop }, // Filter by shop ID
-          },
-          {
-            $group: {
-              _id: { subCategory: '$subCategory._id' },
-              name: { $first: '$subCategory.name' },
-              slug: { $first: '$subCategory.slug' },
-              images: { $first: '$subCategory.images' },
-              total: { $sum: 1 },
-            },
-          },
-        ];
-      }
+    // Finalize
+    // Pipeline order matters: filter FIRST, then rank/sort, then paginate.
+    if (Object.keys(mFilter).length) {
+      aggregateStages.push({ $match: mFilter });
     }
 
-    // Search A-Z
-    if (searchQuery) {
+    // Search ranking must run AFTER $match. The previous position (before
+    // $match) evaluated $indexOfCP on every document across ALL shops and
+    // no client ever sorts by it — keep it only for callers that ask.
+    if (searchQuery && mSort && Object.keys(mSort).includes('sortBySearch')) {
       aggregateStages.push({
         $addFields: {
           sortBySearch: {
@@ -748,151 +775,52 @@ export class ProductService {
       });
     }
 
-    // Finalize
-    if (Object.keys(mFilter).length) {
-      // Main
-      aggregateStages.push({ $match: mFilter });
-
-      // Category Groups
-      if (groupCategory) {
-        // aggregateCategoryGroupStages.push({ $match: mFilter });
-        aggregateCategoryGroupStages.push(groupCategory);
-      }
-
-      // Sub Category Groups
-      if (groupSubCategory) {
-        // aggregateSubCategoryGroupStages.push({ $match: mFilter });
-        aggregateSubCategoryGroupStages.push(groupSubCategory);
-      }
-
-      // Brand Groups
-      if (groupBrand) {
-        // aggregateBrandGroupStages.push({ $match: mFilter });
-        aggregateBrandGroupStages.push(groupBrand);
-      }
-    } else {
-      if (groupCategory) {
-        aggregateCategoryGroupStages.push(groupCategory);
-      }
-      if (groupSubCategory) {
-        aggregateSubCategoryGroupStages.push(groupSubCategory);
-      }
-      if (groupBrand) {
-        aggregateBrandGroupStages.push(groupBrand);
-      }
-    }
-
     if (Object.keys(mSort).length) {
       aggregateStages.push({ $sort: mSort });
     }
 
-    if (!pagination) {
+    // Pagination
+    // $skip/$limit stay OUTSIDE any $facet: inside one, MongoDB cannot apply
+    // top-K after $sort and materializes the whole shop catalog per request.
+    if (pagination) {
+      aggregateStages.push({
+        $skip:
+          pagination.pageSize *
+          pagination.currentPage /* IF PAGE START FROM 0 OR (pagination.currentPage - 1) IF PAGE 1*/,
+      });
+      aggregateStages.push({ $limit: pagination.pageSize });
+    }
+    if (Object.keys(mSelect).length) {
       aggregateStages.push({ $project: mSelect });
     }
 
-    // Pagination
-    if (pagination) {
-      if (Object.keys(mSelect).length) {
-        mPagination = {
-          $facet: {
-            metadata: [{ $count: 'total' }],
-            data: [
-              {
-                $skip: pagination.pageSize * pagination.currentPage,
-              } /* IF PAGE START FROM 0 OR (pagination.currentPage - 1) IF PAGE 1*/,
-              { $limit: pagination.pageSize },
-              { $project: mSelect },
-            ],
-          },
-        };
-      } else {
-        mPagination = {
-          $facet: {
-            metadata: [{ $count: 'total' }],
-            data: [
-              {
-                $skip: pagination.pageSize * pagination.currentPage,
-              } /* IF PAGE START FROM 0 OR (pagination.currentPage - 1) IF PAGE 1*/,
-              { $limit: pagination.pageSize },
-            ],
-          },
-        };
-      }
-
-      aggregateStages.push(mPagination);
-
-      aggregateStages.push({
-        $project: {
-          data: 1,
-          count: { $arrayElemAt: ['$metadata.total', 0] },
-        },
-      });
-    }
-
     try {
-      // Run the main query and all filter-group aggregations in parallel.
-      // Each aggregate() is a separate MongoDB round trip; running them
-      // sequentially multiplied Atlas RTT across every product list request.
-      const wantsCategory =
-        filterGroup && filterGroup.isGroup && filterGroup.category;
-      const wantsSubCategory =
-        filterGroup && filterGroup.isGroup && filterGroup.subCategory;
-      const wantsBrand = filterGroup && filterGroup.isGroup && filterGroup.brand;
+      // Main data query, total count, and filter groups all run in parallel —
+      // each is a separate Atlas round trip, so parallelizing keeps the
+      // wall-clock cost at one RTT.
+      const [dataAggregates, totalCount, groupResult] = await Promise.all([
+        this.productModel.aggregate(aggregateStages),
+        pagination
+          ? this.productModel.countDocuments(mFilter)
+          : Promise.resolve(undefined),
+        groupPromise ?? Promise.resolve(null),
+      ]);
 
-      const [dataAggregates, categoryAggregates, subCategoryAggregates, brandAggregates] =
-        await Promise.all([
-          this.productModel.aggregate(aggregateStages, { allowDiskUse: true }),
-          wantsCategory
-            ? this.productModel.aggregate(aggregateCategoryGroupStages, {
-                allowDiskUse: true,
-              })
-            : Promise.resolve(undefined),
-          wantsSubCategory
-            ? this.productModel.aggregate(aggregateSubCategoryGroupStages, {
-                allowDiskUse: true,
-              })
-            : Promise.resolve(undefined),
-          wantsBrand
-            ? this.productModel.aggregate(aggregateBrandGroupStages, {
-                allowDiskUse: true,
-              })
-            : Promise.resolve(undefined),
-        ]);
-
-      // Main Filter Data
-      let allFilterGroups: any;
-      if (filterGroup && filterGroup.isGroup) {
-        allFilterGroups = {
-          categories:
-            categoryAggregates && categoryAggregates.length
-              ? categoryAggregates
-              : [],
-          subCategories:
-            subCategoryAggregates && subCategoryAggregates.length
-              ? subCategoryAggregates
-              : [],
-          brands:
-            brandAggregates && brandAggregates.length ? brandAggregates : [],
-        };
-      } else {
-        allFilterGroups = null;
-      }
+      const allFilterGroups: any = groupResult
+        ? {
+            categories: groupResult.categories ?? [],
+            subCategories: groupResult.subCategories ?? [],
+            brands: groupResult.brands ?? [],
+          }
+        : null;
 
       if (pagination) {
-        if (
-          pagination.currentPage < 1 &&
-          filter == null &&
-          JSON.stringify(sort) == JSON.stringify({ createdAt: -1 })
-        ) {
-        }
-
         return {
-          ...{ ...dataAggregates[0] },
-          ...{
-            success: true,
-            message: 'Success',
-            filterGroup: allFilterGroups,
-          },
+          data: dataAggregates,
+          count: totalCount ?? 0,
+          success: true,
+          message: 'Success',
+          filterGroup: allFilterGroups,
         } as ResponsePayload;
       } else {
         return {
@@ -1091,6 +1019,7 @@ export class ProductService {
     updateProductDto: UpdateProductDto,
   ): Promise<ResponsePayload> {
     try {
+      this.invalidateProductCaches(shop);
       const { name, autoSlug, slug } = updateProductDto;
 
       const fShop = await this.shopModel.exists({
@@ -1199,6 +1128,7 @@ export class ProductService {
     updateProductDto: UpdateProductDto,
   ): Promise<ResponsePayload> {
     try {
+      this.invalidateProductCaches(shop);
       const fShop = await this.shopModel.exists({
         _id: shop,
         'users._id': vendor._id,
@@ -1255,6 +1185,7 @@ export class ProductService {
     id: string,
   ): Promise<ResponsePayload> {
     try {
+      this.invalidateProductCaches(shop);
       const fShop = await this.shopModel.exists({
         _id: shop,
         'users._id': vendor._id,
@@ -1310,6 +1241,7 @@ export class ProductService {
     ids: string[],
   ): Promise<ResponsePayload> {
     try {
+      this.invalidateProductCaches(shop);
       const fShop = await this.shopModel.exists({
         _id: shop,
         'users._id': vendor._id,
@@ -1346,6 +1278,7 @@ export class ProductService {
 
   async deleteAllTrashByShop(shop: string): Promise<ResponsePayload> {
     try {
+      this.invalidateProductCaches(shop);
       const fShop = await this.shopModel.exists({
         _id: shop,
       });
@@ -1374,6 +1307,7 @@ export class ProductService {
     ids: string[],
   ): Promise<ResponsePayload> {
     try {
+      this.invalidateProductCaches(shop);
       const fShop = await this.shopModel.exists({
         _id: shop,
         'users._id': vendor._id,
@@ -1422,6 +1356,7 @@ export class ProductService {
     ids: string[],
   ): Promise<ResponsePayload> {
     try {
+      this.invalidateProductCaches(shop);
       const fShop = await this.shopModel.exists({
         _id: shop,
         'users._id': vendor._id,
@@ -1459,7 +1394,13 @@ export class ProductService {
 
   async deleteMultipleProductById(ids: string[]): Promise<ResponsePayload> {
     try {
+      // No shop in scope here — resolve the affected shops first so their
+      // derived caches can be dropped.
+      const shops: string[] = await this.productModel.distinct('shop', {
+        _id: ids,
+      });
       await this.productModel.deleteMany({ _id: ids });
+      shops.forEach((shop) => this.invalidateProductCaches(shop.toString()));
       return {
         success: true,
         message: 'Success',
@@ -1467,6 +1408,15 @@ export class ProductService {
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
+  }
+
+  /**
+   * Drop shop-scoped caches derived from the product set (storefront filter
+   * groups). Called from every product write so the chips never serve a
+   * pre-write snapshot.
+   */
+  private invalidateProductCaches(shop: string): void {
+    this.ttlCache.delete(`fg:${shop}`);
   }
 
   private async productUpdateOnFbCatalog(shop: string) {
