@@ -455,14 +455,17 @@ export class ProductService {
 
       const skip = (Number(page) - 1) * Number(limit);
 
-      // Settings lookup and count run in parallel (independent queries);
-      // only the data find() needs to wait for the sort preference.
-      const [fSetting, totalCount] = await Promise.all([
-        this.settingModel
-          .findOne({ shop: shop })
-          .select('productSetting -_id'),
-        this.productModel.countDocuments(mFilter),
-      ]);
+      // Sort preference changes rarely — cache it instead of one Setting
+      // round trip per storefront request (invalidated on setting writes).
+      const fSetting = await this.ttlCache.wrap(
+        `setting:sort:${shop}`,
+        60_000,
+        () =>
+          this.settingModel
+            .findOne({ shop: shop })
+            .select('productSetting -_id')
+            .lean() as Promise<any>,
+      );
 
       let sortQuery: any = {};
       if (fSetting?.productSetting?.isEnableSoldQuantitySort) {
@@ -473,14 +476,20 @@ export class ProductService {
         sortQuery = { createdAt: -1 };
       }
 
-      const data = await this.productModel
-        .find(mFilter)
-        .select(
-          'name variation variationOptions isEnablePhoneModel variation2Options seoKeyword seoTitle seoDescription variation2 slug tags quantity regularPrice salePrice images variationList isVariation prices ratingCount ratingTotal reviewTotal',
-        )
-        .skip(Number(skip))
-        .limit(Number(limit))
-        .sort(sortQuery);
+      // Data and count are independent once the sort is known — one
+      // wall-clock round trip.
+      const [data, totalCount] = await Promise.all([
+        this.productModel
+          .find(mFilter)
+          .select(
+            'name variation variationOptions isEnablePhoneModel variation2Options seoKeyword seoTitle seoDescription variation2 slug tags quantity regularPrice salePrice images variationList isVariation prices ratingCount ratingTotal reviewTotal',
+          )
+          .skip(Number(skip))
+          .limit(Number(limit))
+          .sort(sortQuery)
+          .lean({ virtuals: true }),
+        this.productModel.countDocuments(mFilter),
+      ]);
 
       return {
         success: true,
@@ -864,7 +873,8 @@ export class ProductService {
 
       const data = await this.productModel
         .findOne(query)
-        .select(select);
+        .select(select)
+        .lean({ virtuals: true });
 
       // Increment view count (fire-and-forget: never block the read
       // response on this extra Atlas write round trip)
@@ -962,7 +972,8 @@ export class ProductService {
 
       const data = await this.productModel
         .findOne(query)
-        .select(select);
+        .select(select)
+        .lean({ virtuals: true });
 
       // Increment view count (fire-and-forget: never block the read
       // response on this extra Atlas write round trip)
@@ -996,7 +1007,8 @@ export class ProductService {
       const mIds = getProductByIdsDto.ids.map((m) => new ObjectId(m));
       const data = await this.productModel
         .find({ _id: mIds, shop: shop })
-        .select(select);
+        .select(select)
+        .lean({ virtuals: true });
 
       return {
         success: true,

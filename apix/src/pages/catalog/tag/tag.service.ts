@@ -22,6 +22,7 @@ import {
   MAX_TAGS_UPLOAD,
 } from '../../../config/global-variables';
 import { Product } from '../../product/interfaces/product.interface';
+import { TtlCacheService } from '../../../shared/ttl-cache/ttl-cache.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -34,6 +35,7 @@ export class TagService {
     @InjectModel('Shop') private readonly shopModel: Model<Shop>,
     @InjectModel('Product') private readonly productModel: Model<Product>,
     private utilsService: UtilsService,
+    private readonly ttlCache: TtlCacheService,
   ) {
     this.checkExpireEveryday();
   }
@@ -89,6 +91,7 @@ export class TagService {
       };
 
       const saveData = await this.tagModel.create(finalData);
+      this.ttlCache.delete(`ui:tag:${shop}`);
       const data = {
         _id: saveData._id,
       };
@@ -106,10 +109,15 @@ export class TagService {
 
   async getAllTagForUi(shop: string): Promise<ResponsePayload> {
     try {
-      const data = await this.tagModel
-        .find({ shop: shop, status: 'publish', isShow: true })
-        .select('name startDate images')
-        .sort({ priority: -1 });
+      // Identical for every storefront visitor — cache the shop's list
+      // instead of one Atlas round trip per request (invalidated on writes).
+      const data = await this.ttlCache.wrap(`ui:tag:${shop}`, 60_000, () =>
+        this.tagModel
+          .find({ shop: shop, status: 'publish', isShow: true })
+          .select('name startDate images')
+          .sort({ priority: -1 })
+          .lean({ virtuals: true }),
+      );
 
       return {
         success: true,
@@ -555,6 +563,7 @@ export class TagService {
       await this.tagModel.findByIdAndUpdate(id, {
         $set: updateTagDto,
       });
+      this.ttlCache.delete(`ui:tag:${shop}`);
 
       // If name changed, update tag name inside all product documents
       if (isNameChanged) {
@@ -667,6 +676,7 @@ export class TagService {
           { _id: { $in: mIds } },
           { $set: updateTagDto },
         );
+        this.ttlCache.delete(`ui:tag:${shop}`);
 
         return {
           success: true,
@@ -702,6 +712,7 @@ export class TagService {
       }
 
       await this.tagModel.deleteMany({ _id: ids, status: 'trash' });
+      this.ttlCache.delete(`ui:tag:${shop}`);
       return {
         success: true,
         message: 'Success! Tag permanently deleted successfully.',
@@ -740,6 +751,7 @@ export class TagService {
       // );
 
       await this.tagModel.deleteMany({ _id: ids });
+      this.ttlCache.delete(`ui:tag:${shop}`);
 
       return {
         success: true,
@@ -752,7 +764,13 @@ export class TagService {
 
   async deleteMultipleTagById(ids: string[]): Promise<ResponsePayload> {
     try {
+      // Resolve affected shops before the delete so their UI caches
+      // can be invalidated.
+      const shops = await this.tagModel.distinct('shop', { _id: ids });
       await this.tagModel.deleteMany({ _id: ids });
+      for (const shop of shops) {
+        this.ttlCache.delete(`ui:tag:${shop}`);
+      }
       return {
         success: true,
         message: 'Success',
@@ -776,6 +794,7 @@ export class TagService {
       }
 
       await this.tagModel.deleteMany({ shop: shop, status: 'trash' });
+      this.ttlCache.delete(`ui:tag:${shop}`);
       return {
         success: true,
         message: 'Success! order permanently deleted successfully.',

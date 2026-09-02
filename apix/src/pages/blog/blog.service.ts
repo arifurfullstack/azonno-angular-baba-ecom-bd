@@ -18,6 +18,7 @@ import { ResponsePayload } from 'src/interfaces/response-payload.interface';
 import { Shop } from 'src/pages/shop/interfaces/shop.interface';
 import * as schedule from 'node-schedule';
 import { MAX_BANNER_UPLOAD } from '../../config/global-variables';
+import { TtlCacheService } from '../../shared/ttl-cache/ttl-cache.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -29,6 +30,7 @@ export class BlogService {
     @InjectModel('Blog') private readonly blogModel: Model<Blog>,
     @InjectModel('Shop') private readonly shopModel: Model<Shop>,
     private utilsService: UtilsService,
+    private readonly ttlCache: TtlCacheService,
   ) {
     this.checkExpireEveryday();
   }
@@ -106,6 +108,7 @@ export class BlogService {
       };
 
       const saveData = await this.blogModel.create(finalData);
+      this.ttlCache.delete(`ui:blog:${shop}`);
       const data = {
         _id: saveData._id,
       };
@@ -123,12 +126,17 @@ export class BlogService {
 
   async getAllBlogForUi(shop: string): Promise<ResponsePayload> {
     try {
-      const data = await this.blogModel
-        .find({ shop: shop, status: 'publish' })
-        .select(
-          'title totalView authorName description shortDesc createdAt slug images',
-        )
-        .sort({ priority: -1 });
+      // Identical for every storefront visitor — cache the shop's list
+      // instead of one Atlas round trip per request (invalidated on writes).
+      const data = await this.ttlCache.wrap(`ui:blog:${shop}`, 60_000, () =>
+        this.blogModel
+          .find({ shop: shop, status: 'publish' })
+          .select(
+            'title totalView authorName description shortDesc createdAt slug images',
+          )
+          .sort({ priority: -1 })
+          .lean({ virtuals: true }),
+      );
 
       return {
         success: true,
@@ -667,6 +675,7 @@ export class BlogService {
       await this.blogModel.findByIdAndUpdate(id, {
         $set: finalData,
       });
+      this.ttlCache.delete(`ui:blog:${shop}`);
 
       return {
         success: true,
@@ -708,6 +717,7 @@ export class BlogService {
           { _id: { $in: mIds } },
           { $set: updateBlogDto },
         );
+        this.ttlCache.delete(`ui:blog:${shop}`);
 
         return {
           success: true,
@@ -743,6 +753,7 @@ export class BlogService {
       }
 
       await this.blogModel.deleteMany({ _id: ids, status: 'trash' });
+      this.ttlCache.delete(`ui:blog:${shop}`);
       return {
         success: true,
         message: 'Success! Blog permanently deleted successfully.',
@@ -781,6 +792,7 @@ export class BlogService {
       // );
 
       await this.blogModel.deleteMany({ _id: ids });
+      this.ttlCache.delete(`ui:blog:${shop}`);
 
       return {
         success: true,
@@ -793,7 +805,13 @@ export class BlogService {
 
   async deleteMultipleBlogById(ids: string[]): Promise<ResponsePayload> {
     try {
+      // Resolve affected shops before the delete so their UI caches
+      // can be invalidated.
+      const shops = await this.blogModel.distinct('shop', { _id: ids });
       await this.blogModel.deleteMany({ _id: ids });
+      for (const shop of shops) {
+        this.ttlCache.delete(`ui:blog:${shop}`);
+      }
       return {
         success: true,
         message: 'Success',
@@ -817,6 +835,7 @@ export class BlogService {
       }
 
       await this.blogModel.deleteMany({ shop: shop, status: 'trash' });
+      this.ttlCache.delete(`ui:blog:${shop}`);
       return {
         success: true,
         message: 'Success! order permanently deleted successfully.',

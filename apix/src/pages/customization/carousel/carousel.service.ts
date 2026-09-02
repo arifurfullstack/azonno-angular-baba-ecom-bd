@@ -18,6 +18,7 @@ import { ResponsePayload } from 'src/interfaces/response-payload.interface';
 import { Shop } from 'src/pages/shop/interfaces/shop.interface';
 import * as schedule from 'node-schedule';
 import { MAX_CAROUSEL_UPLOAD, MAX_PRODUCT_UPLOAD } from "../../../config/global-variables";
+import { TtlCacheService } from '../../../shared/ttl-cache/ttl-cache.service';
 const ObjectId = Types.ObjectId;
 
 @Injectable()
@@ -28,6 +29,7 @@ export class CarouselService {
     @InjectModel('Carousel') private readonly carouselModel: Model<Carousel>,
     @InjectModel('Shop') private readonly shopModel: Model<Shop>,
     private utilsService: UtilsService,
+    private readonly ttlCache: TtlCacheService,
   ) {
     this.checkExpireEveryday();
   }
@@ -83,6 +85,7 @@ export class CarouselService {
       };
 
       const saveData = await this.carouselModel.create(finalData);
+      this.ttlCache.delete(`ui:carousel:${shop}`);
       const data = {
         _id: saveData._id,
       };
@@ -157,11 +160,16 @@ export class CarouselService {
 
   async getAllCarouselForUi(shop: string): Promise<ResponsePayload> {
     try {
-      const data = await this.carouselModel
-        .find({ shop: shop, status: 'publish' })
-        .select('name images url urlType')
-        .sort({ priority: 1 })
-        .limit(5);
+      // Identical for every storefront visitor — cache the shop's list
+      // instead of one Atlas round trip per request (invalidated on writes).
+      const data = await this.ttlCache.wrap(`ui:carousel:${shop}`, 60_000, () =>
+        this.carouselModel
+          .find({ shop: shop, status: 'publish' })
+          .select('name images url urlType')
+          .sort({ priority: 1 })
+          .limit(5)
+          .lean({ virtuals: true }),
+      );
 
       return {
         success: true,
@@ -564,6 +572,7 @@ export class CarouselService {
       await this.carouselModel.findByIdAndUpdate(id, {
         $set: finalData,
       });
+      this.ttlCache.delete(`ui:carousel:${shop}`);
 
       return {
         success: true,
@@ -605,6 +614,7 @@ export class CarouselService {
           { _id: { $in: mIds } },
           { $set: updateCarouselDto },
         );
+        this.ttlCache.delete(`ui:carousel:${shop}`);
 
         return {
           success: true,
@@ -640,6 +650,7 @@ export class CarouselService {
       }
 
       await this.carouselModel.deleteMany({ _id: ids, status: 'trash' });
+      this.ttlCache.delete(`ui:carousel:${shop}`);
       return {
         success: true,
         message: 'Success! Carousel permanently deleted successfully.',
@@ -678,6 +689,7 @@ export class CarouselService {
       // );
 
       await this.carouselModel.deleteMany({ _id: ids });
+      this.ttlCache.delete(`ui:carousel:${shop}`);
 
       return {
         success: true,
@@ -690,7 +702,13 @@ export class CarouselService {
 
   async deleteMultipleCarouselById(ids: string[]): Promise<ResponsePayload> {
     try {
+      // Resolve affected shops before the delete so their UI caches
+      // can be invalidated.
+      const shops = await this.carouselModel.distinct('shop', { _id: ids });
       await this.carouselModel.deleteMany({ _id: ids });
+      for (const shop of shops) {
+        this.ttlCache.delete(`ui:carousel:${shop}`);
+      }
       return {
         success: true,
         message: 'Success',
@@ -714,6 +732,7 @@ export class CarouselService {
       }
 
       await this.carouselModel.deleteMany({ shop: shop, status: 'trash' });
+      this.ttlCache.delete(`ui:carousel:${shop}`);
       return {
         success: true,
         message: 'Success! order permanently deleted successfully.',

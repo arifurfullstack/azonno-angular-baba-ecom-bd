@@ -18,6 +18,7 @@ import { ResponsePayload } from 'src/interfaces/response-payload.interface';
 import { Shop } from 'src/pages/shop/interfaces/shop.interface';
 import * as schedule from 'node-schedule';
 import { MAX_BANNER_UPLOAD } from '../../config/global-variables';
+import { TtlCacheService } from '../../shared/ttl-cache/ttl-cache.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -29,6 +30,7 @@ export class SeoPageService {
     @InjectModel('SeoPage') private readonly seoPageModel: Model<SeoPage>,
     @InjectModel('Shop') private readonly shopModel: Model<Shop>,
     private utilsService: UtilsService,
+    private readonly ttlCache: TtlCacheService,
   ) {
     this.checkExpireEveryday();
   }
@@ -84,6 +86,7 @@ export class SeoPageService {
       };
 
       const saveData = await this.seoPageModel.create(finalData);
+      this.ttlCache.invalidatePrefix(`ui:seo-page:${shop}`);
       const data = {
         _id: saveData._id,
       };
@@ -140,13 +143,23 @@ export class SeoPageService {
 
       const skip = (Number(page) - 1) * Number(limit);
 
-      const data = await this.seoPageModel
-        .find(mFilter)
-        .select('seoTitle seoDescription images seoKeyword')
-        .skip(Number(skip))
-        .limit(Number(limit));
-
-      const totalCount = await this.seoPageModel.countDocuments(mFilter);
+      // Identical for every storefront visitor with the same query —
+      // cache per (shop, filter, page) instead of two Atlas round trips
+      // per request (invalidated on writes via the shop prefix).
+      const [data, totalCount] = await this.ttlCache.wrap(
+        `ui:seo-page:${shop}:${status ?? ''}:${tagName ?? ''}:${page}:${limit}`,
+        60_000,
+        async () =>
+          Promise.all([
+            this.seoPageModel
+              .find(mFilter)
+              .select('seoTitle seoDescription images seoKeyword')
+              .skip(Number(skip))
+              .limit(Number(limit))
+              .lean({ virtuals: true }),
+            this.seoPageModel.countDocuments(mFilter),
+          ]),
+      );
 
       return {
         success: true,
@@ -587,6 +600,7 @@ export class SeoPageService {
       await this.seoPageModel.findByIdAndUpdate(id, {
         $set: finalData,
       });
+      this.ttlCache.invalidatePrefix(`ui:seo-page:${shop}`);
 
       return {
         success: true,
@@ -628,6 +642,7 @@ export class SeoPageService {
           { _id: { $in: mIds } },
           { $set: updateSeoPageDto },
         );
+        this.ttlCache.invalidatePrefix(`ui:seo-page:${shop}`);
 
         return {
           success: true,
@@ -663,6 +678,7 @@ export class SeoPageService {
       }
 
       await this.seoPageModel.deleteMany({ _id: ids, status: 'trash' });
+      this.ttlCache.invalidatePrefix(`ui:seo-page:${shop}`);
       return {
         success: true,
         message: 'Success! SeoPage permanently deleted successfully.',
@@ -701,6 +717,7 @@ export class SeoPageService {
       // );
 
       await this.seoPageModel.deleteMany({ _id: ids });
+      this.ttlCache.invalidatePrefix(`ui:seo-page:${shop}`);
 
       return {
         success: true,
@@ -713,7 +730,13 @@ export class SeoPageService {
 
   async deleteMultipleSeoPageById(ids: string[]): Promise<ResponsePayload> {
     try {
+      // Resolve affected shops before the delete so their UI caches
+      // can be invalidated.
+      const shops = await this.seoPageModel.distinct('shop', { _id: ids });
       await this.seoPageModel.deleteMany({ _id: ids });
+      for (const shop of shops) {
+        this.ttlCache.invalidatePrefix(`ui:seo-page:${shop}`);
+      }
       return {
         success: true,
         message: 'Success',
@@ -737,6 +760,7 @@ export class SeoPageService {
       }
 
       await this.seoPageModel.deleteMany({ shop: shop, status: 'trash' });
+      this.ttlCache.invalidatePrefix(`ui:seo-page:${shop}`);
       return {
         success: true,
         message: 'Success! order permanently deleted successfully.',

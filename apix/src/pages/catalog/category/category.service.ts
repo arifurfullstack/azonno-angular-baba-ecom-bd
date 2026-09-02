@@ -19,6 +19,7 @@ import { Shop } from 'src/pages/shop/interfaces/shop.interface';
 import * as schedule from 'node-schedule';
 import { MAX_CATEGORY_UPLOAD } from '../../../config/global-variables';
 import { Product } from '../../product/interfaces/product.interface';
+import { TtlCacheService } from '../../../shared/ttl-cache/ttl-cache.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -31,6 +32,7 @@ export class CategoryService {
     @InjectModel('Shop') private readonly shopModel: Model<Shop>,
     @InjectModel('Product') private readonly productModel: Model<Product>,
     private utilsService: UtilsService,
+    private readonly ttlCache: TtlCacheService,
   ) {
     this.checkExpireEveryday();
   }
@@ -87,6 +89,7 @@ export class CategoryService {
       };
 
       const saveData = await this.categoryModel.create(finalData);
+      this.ttlCache.delete(`ui:category:${shop}`);
       const data = {
         _id: saveData._id,
       };
@@ -104,10 +107,15 @@ export class CategoryService {
 
   async getAllCategoryForUi(shop: string): Promise<ResponsePayload> {
     try {
-      const data = await this.categoryModel
-        .find({ shop: shop, status: 'publish' })
-        .select('name slug images')
-        .sort({ priority: -1 });
+      // Identical for every storefront visitor — cache the shop's list
+      // instead of one Atlas round trip per request (invalidated on writes).
+      const data = await this.ttlCache.wrap(`ui:category:${shop}`, 60_000, () =>
+        this.categoryModel
+          .find({ shop: shop, status: 'publish' })
+          .select('name slug images')
+          .sort({ priority: -1 })
+          .lean({ virtuals: true }),
+      );
 
       return {
         success: true,
@@ -581,6 +589,7 @@ export class CategoryService {
       await this.categoryModel.findByIdAndUpdate(id, {
         $set: finalData,
       });
+      this.ttlCache.delete(`ui:category:${shop}`);
 
       // Only update products if the name has changed
       if (isNameChanged) {
@@ -638,6 +647,7 @@ export class CategoryService {
           { _id: { $in: mIds } },
           { $set: updateCategoryDto },
         );
+        this.ttlCache.delete(`ui:category:${shop}`);
 
         return {
           success: true,
@@ -673,6 +683,7 @@ export class CategoryService {
       }
 
       await this.categoryModel.deleteMany({ _id: ids, status: 'trash' });
+      this.ttlCache.delete(`ui:category:${shop}`);
       return {
         success: true,
         message: 'Success! Category permanently deleted successfully.',
@@ -711,6 +722,7 @@ export class CategoryService {
       // );
 
       await this.categoryModel.deleteMany({ _id: ids });
+      this.ttlCache.delete(`ui:category:${shop}`);
 
       return {
         success: true,
@@ -723,7 +735,13 @@ export class CategoryService {
 
   async deleteMultipleCategoryById(ids: string[]): Promise<ResponsePayload> {
     try {
+      // Resolve affected shops before the delete so their UI caches
+      // can be invalidated.
+      const shops = await this.categoryModel.distinct('shop', { _id: ids });
       await this.categoryModel.deleteMany({ _id: ids });
+      for (const shop of shops) {
+        this.ttlCache.delete(`ui:category:${shop}`);
+      }
       return {
         success: true,
         message: 'Success',
@@ -747,6 +765,7 @@ export class CategoryService {
       }
 
       await this.categoryModel.deleteMany({ shop: shop, status: 'trash' });
+      this.ttlCache.delete(`ui:category:${shop}`);
       return {
         success: true,
         message: 'Success! order permanently deleted successfully.',
