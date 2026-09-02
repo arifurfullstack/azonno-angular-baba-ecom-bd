@@ -33,6 +33,7 @@ import { SeoModule } from './pages/seo/seo.module';
 import { UserModule } from './pages/user/user.module';
 import { VendorModule } from './pages/vendor/vendor.module';
 import { UtilsModule } from './shared/utils/utils.module';
+import { TtlCacheModule } from './shared/ttl-cache/ttl-cache.module';
 import { CouponModule } from './pages/offers/coupon/coupon.module';
 import { ShopModule } from './pages/shop/shop.module';
 import { SubCategoryModule } from './pages/catalog/sub-category/sub-category.module';
@@ -90,6 +91,7 @@ import { ExpenseModule } from './pages/expense/expense.module';
     GalleryModule,
     FileFolderModule,
     UtilsModule,
+    TtlCacheModule,
 
     BannerModule,
     CategoryModule,
