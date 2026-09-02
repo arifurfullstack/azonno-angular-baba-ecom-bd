@@ -21,7 +21,12 @@ export const authUserInterceptor: HttpInterceptorFn = (req, next) => {
     shopId.trim() !== '' &&
     shopId !== 'undefined' &&
     shopId !== 'null' &&
-    !queryParams.has('shop')
+    !queryParams.has('shop') &&
+    // get-setting-by-domain resolves the shop from the domain itself.
+    // Appending the shop id makes the warm-visit background check use a
+    // different URL than the cold-boot call (shop unknown yet), so the
+    // browser can never reuse its 60s cache — skip it for this endpoint.
+    !req.url.includes('/get-setting-by-domain')
   ) {
     queryParams = queryParams.append('shop', shopId.trim());
   }
