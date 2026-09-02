@@ -15,6 +15,7 @@ import { Shop } from '../../shop/interfaces/shop.interface';
 
 import { DiscountTypeEnum } from '../../../enum/product.enum';
 import * as moment from 'moment';
+import { TtlCacheService } from '../../../shared/ttl-cache/ttl-cache.service';
 
 @Injectable()
 export class ShopInformationService {
@@ -24,7 +25,7 @@ export class ShopInformationService {
     @InjectModel('ShopInformation')
     private readonly shopInformationModel: Model<ShopInformation>,
     @InjectModel('Shop') private readonly shopModel: Model<Shop>,
-
+    private readonly ttlCache: TtlCacheService,
   ) {}
 
   /**
@@ -60,6 +61,8 @@ export class ShopInformationService {
             $set: addShopInformationDto,
           },
         );
+        // Prefix covers every select-variant cache entry for this shop.
+        this.ttlCache.invalidatePrefix(`ui:shop-info:${shop}`);
         const data = {
           _id: shopInformationData._id,
         };
@@ -77,6 +80,8 @@ export class ShopInformationService {
           },
         };
         const saveData = await this.shopInformationModel.create(finalData);
+
+        this.ttlCache.invalidatePrefix(`ui:shop-info:${shop}`);
 
         const data = {
           _id: saveData._id,
@@ -102,6 +107,24 @@ export class ShopInformationService {
    * getShopInformation
    */
   async getShopInformation(
+    shop: string,
+    select: string,
+  ): Promise<ResponsePayload> {
+    try {
+      // Identical for every storefront visitor within the TTL window —
+      // collapses the two Atlas round trips + package/expiry math into one
+      // load per minute (invalidated on writes).
+      return await this.ttlCache.wrap(
+        `ui:shop-info:${shop}:${select ?? ''}`,
+        60_000,
+        () => this.loadShopInformation(shop, select),
+      );
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
+  private async loadShopInformation(
     shop: string,
     select: string,
   ): Promise<ResponsePayload> {

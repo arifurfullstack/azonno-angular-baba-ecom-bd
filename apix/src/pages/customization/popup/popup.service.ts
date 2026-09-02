@@ -17,6 +17,7 @@ import { UtilsService } from 'src/shared/utils/utils.service';
 import { ResponsePayload } from 'src/interfaces/response-payload.interface';
 import { Shop } from 'src/pages/shop/interfaces/shop.interface';
 import * as schedule from 'node-schedule';
+import { TtlCacheService } from '../../../shared/ttl-cache/ttl-cache.service';
 const ObjectId = Types.ObjectId;
 
 @Injectable()
@@ -27,6 +28,7 @@ export class PopupService {
     @InjectModel('Popup') private readonly popupModel: Model<Popup>,
     @InjectModel('Shop') private readonly shopModel: Model<Shop>,
     private utilsService: UtilsService,
+    private readonly ttlCache: TtlCacheService,
   ) {
     this.checkExpireEveryday();
   }
@@ -75,6 +77,8 @@ export class PopupService {
         _id: saveData._id,
       };
 
+      this.ttlCache.delete(`ui:popup:${shop}`);
+
       return {
         success: true,
         message: 'Success! Popup added successfully.',
@@ -88,10 +92,15 @@ export class PopupService {
 
   async getPopupForUi(shop: string): Promise<ResponsePayload> {
     try {
-      const data = await this.popupModel
-        .findOne({ shop: shop, status: 'publish' })
-        .select('url urlType images')
-        .sort({ createdAt: -1 });
+      // Identical for every storefront visitor — cache the shop's popup
+      // instead of one Atlas round trip per request (invalidated on writes).
+      const data = await this.ttlCache.wrap(`ui:popup:${shop}`, 60_000, () =>
+        this.popupModel
+          .findOne({ shop: shop, status: 'publish' })
+          .select('url urlType images')
+          .sort({ createdAt: -1 })
+          .lean({ virtuals: true }),
+      );
 
       return {
         success: true,
@@ -549,6 +558,8 @@ export class PopupService {
         $set: finalData,
       });
 
+      this.ttlCache.delete(`ui:popup:${shop}`);
+
       return {
         success: true,
         message: 'Success! data updated successfully.',
@@ -590,6 +601,8 @@ export class PopupService {
           { $set: updatePopupDto },
         );
 
+        this.ttlCache.delete(`ui:popup:${shop}`);
+
         return {
           success: true,
           message: 'Success! multiple data updated successfully',
@@ -624,6 +637,9 @@ export class PopupService {
       }
 
       await this.popupModel.deleteMany({ _id: ids, status: 'trash' });
+
+      this.ttlCache.delete(`ui:popup:${shop}`);
+
       return {
         success: true,
         message: 'Success! Popup permanently deleted successfully.',
@@ -664,6 +680,8 @@ export class PopupService {
 
       await this.popupModel.deleteMany({ _id: ids });
 
+      this.ttlCache.delete(`ui:popup:${shop}`);
+
       return {
         success: true,
         message: 'Success! Popup deleted successfully.',
@@ -675,7 +693,13 @@ export class PopupService {
 
   async deleteMultiplePopupById(ids: string[]): Promise<ResponsePayload> {
     try {
+      // Resolve affected shops before the delete so their UI caches
+      // can be invalidated.
+      const shops = await this.popupModel.distinct('shop', { _id: ids });
       await this.popupModel.deleteMany({ _id: ids });
+      for (const shop of shops) {
+        this.ttlCache.delete(`ui:popup:${shop}`);
+      }
       return {
         success: true,
         message: 'Success',
@@ -699,6 +723,9 @@ export class PopupService {
       }
 
       await this.popupModel.deleteMany({ shop: shop, status: 'trash' });
+
+      this.ttlCache.delete(`ui:popup:${shop}`);
+
       return {
         success: true,
         message: 'Success! order permanently deleted successfully.',

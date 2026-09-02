@@ -56,6 +56,7 @@ export class SettingService {
         // Cached storefront settings must not serve the old snapshot.
         this.ttlCache.delete(`setting:ui:${shop}`);
         this.ttlCache.delete(`setting:sort:${shop}`);
+        this.ttlCache.delete(`setting:chat:${shop}`);
         // Invalidate storage driver cache if storage settings changed
         if (addSettingDto.storageSetting) {
           this.uploadService.invalidateDriverCache(shop);
@@ -118,6 +119,7 @@ export class SettingService {
         const saveData = await newData.save();
         this.ttlCache.delete(`setting:ui:${shop}`);
         this.ttlCache.delete(`setting:sort:${shop}`);
+        this.ttlCache.delete(`setting:chat:${shop}`);
         const data = {
           _id: saveData._id,
         };
@@ -261,17 +263,25 @@ export class SettingService {
 
   async getChatLink(shop: string): Promise<ResponsePayload> {
     try {
-      const fSetting = await this.settingModel
-        .findOne({ shop: shop })
-        .select('chats -_id');
+      // Identical for every storefront visitor — cache the shop's active
+      // chats instead of one Atlas round trip per request.
+      return await this.ttlCache.wrap(
+        `setting:chat:${shop}`,
+        60_000,
+        async () => {
+          const fSetting = await this.settingModel
+            .findOne({ shop: shop })
+            .select('chats -_id');
 
-      const fChatLink = fSetting?.chats ?? [];
-      const chatLink = fChatLink.filter((f) => f.status === 'active');
-      return {
-        success: true,
-        message: 'Success',
-        data: chatLink,
-      } as ResponsePayload;
+          const fChatLink = fSetting?.chats ?? [];
+          const chatLink = fChatLink.filter((f) => f.status === 'active');
+          return {
+            success: true,
+            message: 'Success',
+            data: chatLink,
+          } as ResponsePayload;
+        },
+      );
     } catch (err) {
       console.log(err);
       throw new InternalServerErrorException(err.message);
