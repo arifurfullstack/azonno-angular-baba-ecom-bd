@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   Logger,
   Param,
   Post,
@@ -38,6 +39,9 @@ export class PopupController {
    * getPopupBySlug()
    * getPopupByIds()
    */
+  // Public storefront read — short browser cache is safe (server-side
+  // TtlCache already serves identical data for this TTL window).
+  @Header('Cache-Control', 'public, max-age=60')
   @Get('/get-popup')
   @UsePipes(ValidationPipe)
   async getAllCarouselForUi(

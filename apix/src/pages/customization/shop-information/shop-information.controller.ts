@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   Logger,
   Post,
   Query,
@@ -28,6 +29,9 @@ export class ShopInformationController {
    */
 
   @Version(VERSION_NEUTRAL)
+  // Public storefront read — short browser cache is safe (server-side
+  // TtlCache already serves identical data for this TTL window).
+  @Header('Cache-Control', 'public, max-age=60')
   @Get('/get')
   async getShopInformation(
     @Query('shop', MongoIdValidationPipe) shop: string,
