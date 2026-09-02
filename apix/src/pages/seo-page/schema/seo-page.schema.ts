@@ -42,3 +42,6 @@ export const SeoPageSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+// Storefront read path (getAllSeoPageForUi): shop + status/type filter.
+SeoPageSchema.index({ shop: 1, status: 1, type: 1 });

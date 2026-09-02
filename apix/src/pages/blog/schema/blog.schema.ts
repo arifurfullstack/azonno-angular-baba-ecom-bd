@@ -62,3 +62,6 @@ export const BlogSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+// Storefront read path (getAllBlogForUi): shop + publish, priority sort.
+BlogSchema.index({ shop: 1, status: 1, priority: -1 });

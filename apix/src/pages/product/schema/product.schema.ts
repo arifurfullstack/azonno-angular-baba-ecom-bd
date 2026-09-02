@@ -396,5 +396,10 @@ ProductSchema.index({ shop: 1, 'category._id': 1, status: 1 });
 ProductSchema.index({ shop: 1, 'subCategory._id': 1, status: 1 });
 ProductSchema.index({ shop: 1, 'tags._id': 1, status: 1 });
 ProductSchema.index({ shop: 1, status: 1, createdAt: -1 });
+// Storefront sort paths (getAllProductForUi) — priority / totalSold sorts
+// and the tag-name filter (the tags._id index above does not cover it).
+ProductSchema.index({ shop: 1, status: 1, priority: -1 });
+ProductSchema.index({ shop: 1, status: 1, totalSold: -1 });
+ProductSchema.index({ shop: 1, 'tags.name': 1, status: 1 });
 
 

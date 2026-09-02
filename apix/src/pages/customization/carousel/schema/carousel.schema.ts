@@ -45,3 +45,6 @@ export const CarouselSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+// Storefront read path (getAllCarouselForUi): shop + publish, top-5 priority ASC.
+CarouselSchema.index({ shop: 1, status: 1, priority: 1 });

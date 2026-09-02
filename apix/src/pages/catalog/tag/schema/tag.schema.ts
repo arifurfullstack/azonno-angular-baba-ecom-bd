@@ -56,3 +56,6 @@ export const TagSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+// Storefront read path (getAllTagForUi): shop + publish + isShow, priority sort.
+TagSchema.index({ shop: 1, status: 1, isShow: 1, priority: -1 });
