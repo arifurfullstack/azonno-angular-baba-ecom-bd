@@ -50,12 +50,19 @@ import { EmailService } from '../../shared/email/email.service';
 import { Affiliate } from '../affiliate/interfaces/affiliate.interface';
 import { MongoClient } from 'mongodb';
 import process from 'node:process';
+import { TtlCacheService } from '../../shared/ttl-cache/ttl-cache.service';
 const ObjectId = Types.ObjectId;
 
 @Injectable()
 export class ShopService {
   private logger = new Logger(ShopService.name);
-  private settingCache = new Map<string, { data: ResponsePayload; timestamp: number }>();
+
+  /** Cache TTLs (ms) — see shared/ttl-cache for the contract. */
+  private static readonly DOMAIN_CACHE_TTL = 60_000;
+  private static readonly SETTING_CACHE_TTL = 60_000;
+  private static readonly SINGLE_SHOP_MODE_TTL = 300_000;
+  /** Sentinel cached for unknown domains so they cannot hammer the DB. */
+  private static readonly DOMAIN_NOT_FOUND = Symbol('shop-domain-not-found');
 
   constructor(
     @InjectModel('Shop')
@@ -89,6 +96,7 @@ export class ShopService {
     private readonly otpService: OtpService,
     private readonly bulkSmsService: BulkSmsService,
     private readonly emailService: EmailService,
+    private readonly ttlCache: TtlCacheService,
   ) {}
 
   /**
@@ -238,6 +246,10 @@ export class ShopService {
         },
       };
       const saveShop = await this.shopModel.create(shopData);
+
+      // New shop + new settings — reset domain resolutions and shop-count probe.
+      this.ttlCache.invalidatePrefix('shop:domain:');
+      this.ttlCache.delete('singleShopMode');
 
       // Update Shop Information
       await this.shopInformationModel.create({
@@ -415,6 +427,11 @@ export class ShopService {
       };
       const saveShop = await this.shopModel.create(shopData);
 
+      // Shop count changed — single-shop-mode probe and domain resolutions
+      // must be recomputed.
+      this.ttlCache.invalidatePrefix('shop:domain:');
+      this.ttlCache.delete('singleShopMode');
+
       // Update Shop Information
       await this.shopInformationModel.create({
         shop: saveShop._id,
@@ -438,23 +455,29 @@ export class ShopService {
 
   async getSettingByShop(shop: string): Promise<ResponsePayload> {
     try {
-      const fSetting = JSON.parse(
-        JSON.stringify(
-          await this.settingModel
-            .findOne({ shop: shop })
-            .select(
-              'shop themeColors themeViewSettings pageViewSettings searchHints orderLanguage productSetting -_id',
-            ),
-        ),
+      return await this.ttlCache.wrap(
+        `setting:ui:${shop}`,
+        ShopService.SETTING_CACHE_TTL,
+        () => this.loadSettingByShop(shop),
       );
-      return {
-        success: true,
-        message: 'Success',
-        data: fSetting,
-      } as ResponsePayload;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
+  }
+
+  /** Uncached loader — also used by getSettingByDomain through the same key. */
+  private async loadSettingByShop(shop: string): Promise<ResponsePayload> {
+    const fSetting = await this.settingModel
+      .findOne({ shop: shop })
+      .select(
+        'shop themeColors themeViewSettings pageViewSettings searchHints orderLanguage productSetting -_id',
+      )
+      .lean();
+    return {
+      success: true,
+      message: 'Success',
+      data: fSetting,
+    } as ResponsePayload;
   }
 
   async getSettingByDomain(domain: string): Promise<ResponsePayload> {
@@ -471,46 +494,65 @@ export class ShopService {
       }
       hostname = hostname.split(':')[0];
 
-      const cacheKey = `domain:${hostname}`;
-      const cached = this.settingCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < 60000) {
-        return cached.data;
-      }
+      // Resolve hostname -> shop id (negative results cached too, so unknown
+      // domains cannot trigger the full 3-query fallback per request).
+      const shopIdOrMiss = await this.ttlCache.wrap<string | symbol>(
+        `shop:domain:${hostname}`,
+        ShopService.DOMAIN_CACHE_TTL,
+        () => this.resolveShopIdByHostname(hostname),
+      );
 
-      // Try fast indexed exact match first
-      let shop = await this.shopModel.findOne({
-        $or: [{ domain: hostname }, { subDomain: hostname }],
-      });
-
-      if (!shop) {
-        const domainRegex = new RegExp('^' + hostname + '(:[0-9]+)?/?$');
-        shop = await this.shopModel.findOne({
-          $or: [{ domain: domainRegex }, { subDomain: domainRegex }],
-        });
-      }
-
-      if (!shop) {
-        const count = await this.shopModel.countDocuments();
-        if (count === 1) {
-          shop = await this.shopModel.findOne({});
-        }
-      }
-
-      if (!shop) {
+      if (typeof shopIdOrMiss !== 'string') {
         return {
           success: false,
           message: 'Shop not found for domain: ' + hostname,
         } as ResponsePayload;
       }
 
-      const result = await this.getSettingByShop(shop._id.toString());
-      if (result && result.success) {
-        this.settingCache.set(cacheKey, { data: result, timestamp: Date.now() });
-      }
-      return result;
+      return this.getSettingByShop(shopIdOrMiss);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
+  }
+
+  /** Shop lookup for getSettingByDomain — _id projection only. */
+  private async resolveShopIdByHostname(
+    hostname: string,
+  ): Promise<string | symbol> {
+    // Exact (indexed) match first
+    let shop = await this.shopModel
+      .findOne({ $or: [{ domain: hostname }, { subDomain: hostname }] })
+      .select('_id')
+      .lean();
+
+    if (!shop) {
+      const domainRegex = new RegExp('^' + hostname + '(:[0-9]+)?/?$');
+      shop = await this.shopModel
+        .findOne({
+          $or: [{ domain: domainRegex }, { subDomain: domainRegex }],
+        })
+        .select('_id')
+        .lean();
+    }
+
+    if (!shop && (await this.isSingleShopMode())) {
+      shop = await this.shopModel.findOne({}).select('_id').lean();
+    }
+
+    return shop ? shop._id.toString() : ShopService.DOMAIN_NOT_FOUND;
+  }
+
+  /**
+   * Cached "there is only one shop" probe. Replaces the per-request
+   * whole-collection countDocuments() that used to run on every
+   * unknown-domain lookup.
+   */
+  private async isSingleShopMode(): Promise<boolean> {
+    return this.ttlCache.wrap(
+      'singleShopMode',
+      ShopService.SINGLE_SHOP_MODE_TTL,
+      async () => (await this.shopModel.countDocuments()) === 1,
+    );
   }
 
   async versionUpdateByShop(shopId: string): Promise<ResponsePayload> {
@@ -765,6 +807,9 @@ export class ShopService {
         { new: true }, // returns the updated document
       );
 
+      // Domain may have changed — drop all domain->shop resolutions.
+      this.ttlCache.invalidatePrefix('shop:domain:');
+
       return {
         success: true,
         message: 'Shop updated successfully',
@@ -1011,6 +1056,11 @@ export class ShopService {
         };
       });
       await this.productModel.insertMany(nProducts);
+
+      // Bulk-copied catalogs — drop cached filter groups and UI lists for the
+      // target shop so the storefront does not serve the pre-clone snapshot.
+      this.ttlCache.delete(`fg:${toShop}`);
+      this.ttlCache.invalidatePrefix(`ui:${toShop}`);
 
       return {
         success: true,

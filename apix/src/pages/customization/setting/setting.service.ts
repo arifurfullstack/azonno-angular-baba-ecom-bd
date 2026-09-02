@@ -19,6 +19,7 @@ import { ReBuildScript } from '../../../shared/script/interfaces/build-script.in
 import * as fs from 'fs';
 import * as path from 'path';
 import { UploadService } from '../../upload/upload.service';
+import { TtlCacheService } from '../../../shared/ttl-cache/ttl-cache.service';
 
 @Injectable()
 export class SettingService {
@@ -34,6 +35,7 @@ export class SettingService {
     private scriptService: ScriptService,
     private utilsService: UtilsService,
     private readonly uploadService: UploadService,
+    private readonly ttlCache: TtlCacheService,
   ) { }
 
   /**
@@ -51,6 +53,9 @@ export class SettingService {
         await this.settingModel.findByIdAndUpdate(settingData._id, {
           $set: addSettingDto,
         });
+        // Cached storefront settings must not serve the old snapshot.
+        this.ttlCache.delete(`setting:ui:${shop}`);
+        this.ttlCache.delete(`setting:sort:${shop}`);
         // Invalidate storage driver cache if storage settings changed
         if (addSettingDto.storageSetting) {
           this.uploadService.invalidateDriverCache(shop);
@@ -111,6 +116,8 @@ export class SettingService {
         };
         const newData = new this.settingModel(mData);
         const saveData = await newData.save();
+        this.ttlCache.delete(`setting:ui:${shop}`);
+        this.ttlCache.delete(`setting:sort:${shop}`);
         const data = {
           _id: saveData._id,
         };
