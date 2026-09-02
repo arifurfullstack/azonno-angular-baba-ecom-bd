@@ -35,6 +35,7 @@ export class CategoryService {
     private readonly ttlCache: TtlCacheService,
   ) {
     this.checkExpireEveryday();
+    this.recountCategoryProductsHourly();
   }
 
   /**
@@ -140,7 +141,9 @@ export class CategoryService {
         } as ResponsePayload;
       }
 
-     await this.updateAllCategoryProductCounts(shop)
+      // NOTE: categoryProducts recount moved to an hourly cron
+      // (recountCategoryProductsHourly) — this public read used to run an
+      // unbounded aggregate + bulkWrite on every request.
 
       // Modify Filter
       const { filter } = filterCategoryDto;
@@ -802,30 +805,48 @@ export class CategoryService {
     }
   }
 
-  async updateAllCategoryProductCounts(shop: string): Promise<void> {
+  /**
+   * Hourly cron that recomputes every category's categoryProducts counter
+   * in one all-shops aggregate + one bulkWrite. Replaces the per-request
+   * recount that used to run inside getAllCategoryByShop.
+   */
+  private recountCategoryProductsHourly() {
+    // First run shortly after boot (offset from autoIndex work), then hourly.
+    schedule.scheduleJob(new Date(Date.now() + 30_000), () => {
+      this.updateAllCategoryProductCounts().catch((err) =>
+        this.logger.error('categoryProducts recount failed:', err),
+      );
+    });
+    schedule.scheduleJob('15 * * * *', () => {
+      this.updateAllCategoryProductCounts().catch((err) =>
+        this.logger.error('categoryProducts recount failed:', err),
+      );
+    });
+  }
+
+  private async updateAllCategoryProductCounts(): Promise<void> {
     const result = await this.productModel.aggregate([
       {
-        $match: {
-          shop: new Types.ObjectId(shop), // যদি shop ফিল্ড ObjectId হয়
+        $group: {
+          _id: { shop: '$shop', category: '$category._id' },
+          productCount: { $sum: 1 },
         },
       },
       {
-        $group: {
-          _id: '$category._id',
-          productCount: { $sum: 1 },
-        },
+        // Products without a category land in a null bucket — skip them.
+        $match: { '_id.category': { $ne: null } },
       },
     ]);
 
     const bulkOps = result.map((item) => ({
       updateOne: {
-        filter: { _id: item._id },
+        filter: { _id: item._id.category },
         update: { $set: { categoryProducts: item.productCount } },
       },
     }));
 
     if (bulkOps.length) {
-      await this.categoryModel.bulkWrite(bulkOps);
+      await this.categoryModel.bulkWrite(bulkOps, { ordered: false });
     }
   }
 
