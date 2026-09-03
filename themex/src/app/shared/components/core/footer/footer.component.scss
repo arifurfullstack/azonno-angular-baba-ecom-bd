@@ -10,12 +10,20 @@ app-bottom-navbar-2 {
   display: none;
 }
 
+app-bottom-navbar-3 {
+  display: none;
+}
+
 @media only screen and (max-width: 599px) {
   app-bottom-navbar {
     display: block;
   }
 
   app-bottom-navbar-2 {
+    display: block;
+  }
+
+  app-bottom-navbar-3 {
     display: block;
   }
 

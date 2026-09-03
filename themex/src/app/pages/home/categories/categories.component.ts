@@ -10,6 +10,8 @@ import {CategoriesCardComponent} from "../../../shared/components/categories-car
 import {CategoryLoaderComponent} from "../../../shared/loader/category-loader/category-loader.component";
 import {CategoryCard2Component} from "../../../shared/components/category-card-2/category-card-2.component";
 import {CategoryLoader2Component} from "../../../shared/loader/category-loader-2/category-loader-2.component";
+import {CategoryCard3Component} from "../../../shared/components/category-card-3/category-card-3.component";
+import {CategoryLoader3Component} from "../../../shared/loader/category-loader-3/category-loader-3.component";
 import {TranslatePipe} from "../../../shared/pipes/translate.pipe";
 
 @Component({
@@ -23,6 +25,8 @@ import {TranslatePipe} from "../../../shared/pipes/translate.pipe";
     CategoryLoaderComponent,
     CategoryCard2Component,
     CategoryLoader2Component,
+    CategoryCard3Component,
+    CategoryLoader3Component,
     TranslatePipe
   ]
 })
@@ -46,8 +50,12 @@ export class CategoriesComponent implements OnInit, OnDestroy {
     // Theme Settings Handle
     this.getSettingData();
 
-    // Base Data
-    this.getAllCategory();
+    // Base Data — "None" hides the section entirely, so skip the request too.
+    if (this.categoryViews !== 'None') {
+      this.getAllCategory();
+    } else {
+      this.isLoading = false;
+    }
   }
 
   /**
@@ -73,7 +81,8 @@ export class CategoriesComponent implements OnInit, OnDestroy {
    **/
   private getSettingData() {
     const themeViewSettings: ThemeViewSetting[] = this.appConfigService.getSettingData('themeViewSettings');
-    this.categoryViews = themeViewSettings.find(f => f.type == 'categoryViews').value.join();
+    // Stored settings may lack this entry — fall back to the catalog default.
+    this.categoryViews = themeViewSettings.find(f => f.type == 'categoryViews')?.value?.join() || 'Category 1';
   }
 
   /**

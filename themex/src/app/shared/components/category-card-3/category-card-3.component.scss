@@ -1,0 +1,67 @@
+@import "variables";
+
+.card-container {
+  display: block;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 150px;
+  text-decoration: none;
+}
+
+.card-img {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: darken($color-white, 5%);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .card-label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.55);
+    padding: 7px 8px;
+    text-align: center;
+
+    span {
+      display: block;
+      color: $color-white;
+      font-family: $font-en-primary;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+//for mobile
+@media only screen and (max-width: 599px) {
+  .card-container {
+    width: 38vw;
+  }
+
+  .card-img {
+    height: 40vw;
+    border-radius: 8px;
+
+    .card-label {
+      padding: 5px 6px;
+
+      span {
+        font-size: 3.2vw;
+      }
+    }
+  }
+}

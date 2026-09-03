@@ -11,12 +11,17 @@
     @case ('Showcase 3') {
       <app-showcase-3></app-showcase-3>
     }
+    @default {
+      <app-showcase-2></app-showcase-2>
+    }
   }
   <!-- END! Showcase Multiple Views -->
 
   @if (isShowCategoryOnHomePage){
     <app-categories></app-categories>
   }
+
+  <app-brand-section></app-brand-section>
 
   @if (shopId === '68d9505e94601f37c0aa3281') {
     <app-return-policy></app-return-policy>
@@ -51,6 +56,9 @@
     }
     @case ('Footer 3') {
       <app-footer-xl-3 [shopInfo]="shopInfo"></app-footer-xl-3>
+    }
+    @case ('Footer 4') {
+      <app-footer-xl-4 [shopInfo]="shopInfo" [chatLink]="chatLink"></app-footer-xl-4>
     }
     @default {
       <app-footer-xl-1 [shopInfo]="shopInfo"></app-footer-xl-1>

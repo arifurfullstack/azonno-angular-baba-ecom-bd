@@ -1,0 +1,65 @@
+@import 'variables';
+
+.navbar-outside {
+  box-sizing: border-box;
+  position: fixed;
+  bottom: 0;
+  background-color: $color-white;
+  border-top: 1px solid darken($color-white, 10%);
+  transition: all 0.3s ease;
+  display: flex;
+  left: 0;
+  right: 0;
+  padding: 8px 0 8px;
+  z-index: 1000;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+}
+
+.nav-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: #8A8A8E;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  .svg {
+    height: 24px;
+    width: 24px;
+    fill: currentColor;
+
+    &.svg-fill {
+      path, rect {
+        fill: currentColor;
+      }
+    }
+  }
+
+  p {
+    margin: 0;
+    font-family: $font-en-primary;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: currentColor;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &.active {
+    color: $color-primary;
+  }
+}

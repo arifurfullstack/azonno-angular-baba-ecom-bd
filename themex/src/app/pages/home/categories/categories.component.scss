@@ -61,6 +61,21 @@
   padding-top: 16px;
 }
 
+// Category 3 — horizontal scroll strip of full-bleed photo cards
+.categories-cards3 {
+  display: flex;
+  gap: 15px;
+  padding-top: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 //for mobile
 @media only screen and (max-width: 599px) {
   .categories-header {
@@ -86,6 +101,10 @@
   }
   .categories-cards, .categories-cards2 {
     grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+  }
+
+  .categories-cards3 {
     gap: 9px;
   }
 

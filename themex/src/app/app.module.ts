@@ -4,7 +4,7 @@ import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {provideHttpClient, withFetch, withInterceptors} from '@angular/common/http';
-import {NgOptimizedImage, provideImgixLoader} from '@angular/common';
+import {IMAGE_LOADER, ImageLoaderConfig, NgOptimizedImage} from '@angular/common';
 import {environment} from '../environments/environment';
 import {Header1Component} from './shared/components/headers/header-1/header-1.component';
 import {FooterComponent} from './shared/components/core/footer/footer.component';
@@ -72,7 +72,24 @@ export function initConfig(configService: AppConfigService) {
       withFetch(),
       withInterceptors([ssrApiRedirectInterceptor, authUserInterceptor])
     ),
-    provideImgixLoader(environment.ftpPrefixPath),
+    {
+      // Same URL shape as provideImgixLoader(environment.ftpPrefixPath), but
+      // absolute URLs (new Cloudinary upload format stored in DB) pass through
+      // untouched — the stock imgix loader throws NG02959 on absolute URLs,
+      // which leaves the <img> without a src at all (broken image).
+      provide: IMAGE_LOADER,
+      useValue: (config: ImageLoaderConfig) => {
+        if (config.src?.startsWith('http')) {
+          return config.src;
+        }
+        const url = new URL(`${environment.ftpPrefixPath}/${config.src}`);
+        url.searchParams.set('auto', 'format');
+        if (config.width) {
+          url.searchParams.set('w', config.width.toString());
+        }
+        return url.href;
+      }
+    },
     provideLottieOptions({
       player: () => import('lottie-web'),
     }),

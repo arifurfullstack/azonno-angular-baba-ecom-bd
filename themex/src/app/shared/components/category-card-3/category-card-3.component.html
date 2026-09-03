@@ -1,0 +1,16 @@
+<a class="card-container" [routerLink]="['/products']"
+   [queryParams]="{ categories: category?.slug}">
+  <div class="card-img">
+    <img
+      [ngSrc]="(category?.images | arrToSingleImage) | imgCtrl : 'filename'"
+      [width]="(category?.images | arrToSingleImage) | imgCtrl : 'width'"
+      [height]="(category?.images | arrToSingleImage) | imgCtrl : 'height'"
+      [alt]="category?.name"
+      [ngSrcset]="rawSrcset"
+      sizes="(max-width: 599px) 130px, (min-width: 600px) 150px"
+    />
+    <div class="card-label">
+      <span>{{ category?.name }}</span>
+    </div>
+  </div>
+</a>

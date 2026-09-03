@@ -1,0 +1,34 @@
+@if (isLoading) {
+  <div class="container">
+    <div class="brand-cards">
+      @for (data of [].constructor(6); track $index) {
+        <div class="brand-card">
+          <ngx-skeleton-loader [theme]="{height: '60px', width: '130px', borderRadius: '10px'}"/>
+        </div>
+      }
+    </div>
+  </div>
+} @else if (brands.length) {
+
+  <div class="container">
+
+    <div class="brand-header">
+      <h2>Brands</h2>
+    </div>
+
+    <div class="brand-cards">
+      @for (brand of brands; track brand?._id || $index) {
+        <a class="brand-card" [routerLink]="['/products']"
+           [queryParams]="{ brand: brand?.slug}">
+          @if (brand?.images?.length) {
+            <img [src]="brand?.images[0]" [alt]="brand?.name" loading="lazy"/>
+          } @else {
+            <span class="brand-name">{{ brand?.name }}</span>
+          }
+        </a>
+      }
+    </div>
+
+  </div>
+
+}

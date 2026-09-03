@@ -13,6 +13,7 @@ const API_URL = environment.apiBaseLink + '/api/brand/';
 export class BrandService {
 
   private allBrandsCache$: Observable<{ data: Brand[], count: number, success: boolean }> | null = null;
+  private allBrandsForUiCache$: Observable<{ data: Brand[], count: number, success: boolean }> | null = null;
   private currentBrandsSearchQuery: string | undefined = undefined;
 
   constructor(
@@ -37,5 +38,18 @@ export class BrandService {
       );
     }
     return this.allBrandsCache$;
+  }
+
+  /**
+   * getAllBrandForUi()
+   * Public storefront read (shop resolved by the auth-user interceptor).
+   */
+  getAllBrandForUi(): Observable<{ data: Brand[], count: number, success: boolean }> {
+    if (!this.allBrandsForUiCache$) {
+      this.allBrandsForUiCache$ = this.httpClient
+        .get<{ data: Brand[], count: number, success: boolean }>(API_URL + 'get-all-data')
+        .pipe(shareReplay(1));
+    }
+    return this.allBrandsForUiCache$;
   }
 }

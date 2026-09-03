@@ -11,6 +11,9 @@
       @case ('Footer 3') {
         <app-footer-xl-3 [shopInfo]="shopInfo"></app-footer-xl-3>
       }
+      @case ('Footer 4') {
+        <app-footer-xl-4 [shopInfo]="shopInfo" [chatLink]="chatLink"></app-footer-xl-4>
+      }
       @default {
         <app-footer-xl-1 [shopInfo]="shopInfo"></app-footer-xl-1>
       }
@@ -26,6 +29,9 @@
       @case ('Bottom Nav 2') {
         <!-- Pass tags for dynamic tag menu -->
         <app-bottom-navbar-2 [currentUrl]="currentUrl" [shopInfo]="shopInfo" [chatLink]="chatLink" [tags]="tags"></app-bottom-navbar-2>
+      }
+      @case ('Bottom Nav 3') {
+        <app-bottom-navbar-3 [currentUrl]="currentUrl" [shopInfo]="shopInfo" [chatLink]="chatLink"></app-bottom-navbar-3>
       }
 
       @default {

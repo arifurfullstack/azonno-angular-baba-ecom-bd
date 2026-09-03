@@ -1,44 +1,74 @@
-<div class="container">
+@if (categoryViews !== 'None') {
 
-  <div class="categories-header">
-    <h2>{{'categories' | translate}}</h2>
-    <a routerLink="/product-categories">
-      {{'viewAll' | translate}}
-      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"
-           class="arrow-icon">
-        <path d="M0 0h24v24H0z" fill="none"/>
-        <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-      </svg>
-    </a>
+  <div class="container">
+
+    <div class="categories-header">
+      <h2>{{'categories' | translate}}</h2>
+      <a routerLink="/product-categories">
+        {{'viewAll' | translate}}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"
+             class="arrow-icon">
+          <path d="M0 0h24v24H0z" fill="none"/>
+          <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+        </svg>
+      </a>
+    </div>
+
+    @switch (categoryViews) {
+      @case ('Category 1') {
+        <div class="categories-cards">
+          @defer (when !isLoading) {
+            @for (item of categories.slice(0, (breakpointObserver.isMatched('(max-width: 599px)') ? 6 : 8)); track item?._id || $index) {
+              <app-categories-card [category]="item"></app-categories-card>
+            }
+          } @placeholder (minimum 50ms) {
+            @for (data of [].constructor(8); track data?._id || $index) {
+              <app-category-loader />
+            }
+          }
+        </div>
+      }
+      @case ('Category 2') {
+        <div class="categories-cards2">
+          @defer (when !isLoading) {
+            @for (item of categories.slice(0, (breakpointObserver.isMatched('(max-width: 599px)') ? 10 : 10)); track item?._id || $index) {
+              <app-category-card-2 [category]="item"></app-category-card-2>
+            }
+          } @placeholder (minimum 50ms) {
+            @for (data of [].constructor(8); track data?._id || $index) {
+              <app-category-loader-2 />
+            }
+          }
+        </div>
+      }
+      @case ('Category 3') {
+        <div class="categories-cards3">
+          @defer (when !isLoading) {
+            @for (item of categories; track item?._id || $index) {
+              <app-category-card-3 [category]="item"></app-category-card-3>
+            }
+          } @placeholder (minimum 50ms) {
+            @for (data of [].constructor(8); track data?._id || $index) {
+              <app-category-loader-3 />
+            }
+          }
+        </div>
+      }
+      @default {
+        <div class="categories-cards">
+          @defer (when !isLoading) {
+            @for (item of categories.slice(0, (breakpointObserver.isMatched('(max-width: 599px)') ? 6 : 8)); track item?._id || $index) {
+              <app-categories-card [category]="item"></app-categories-card>
+            }
+          } @placeholder (minimum 50ms) {
+            @for (data of [].constructor(8); track data?._id || $index) {
+              <app-category-loader />
+            }
+          }
+        </div>
+      }
+    }
+
   </div>
 
-  @switch (categoryViews) {
-    @case ('Category 1') {
-      <div class="categories-cards">
-        @defer (when !isLoading) {
-          @for (item of categories.slice(0, (breakpointObserver.isMatched('(max-width: 599px)') ? 6 : 8)); track item?._id || $index) {
-            <app-categories-card [category]="item"></app-categories-card>
-          }
-        } @placeholder (minimum 50ms) {
-          @for (data of [].constructor(8); track data?._id || $index) {
-            <app-category-loader />
-          }
-        }
-      </div>
-    }
-    @case ('Category 2') {
-      <div class="categories-cards2">
-        @defer (when !isLoading) {
-          @for (item of categories.slice(0, (breakpointObserver.isMatched('(max-width: 599px)') ? 10 : 10)); track item?._id || $index) {
-            <app-category-card-2 [category]="item"></app-category-card-2>
-          }
-        } @placeholder (minimum 50ms) {
-          @for (data of [].constructor(8); track data?._id || $index) {
-            <app-category-loader-2 />
-          }
-        }
-      </div>
-    }
-  }
-
-</div>
+}

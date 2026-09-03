@@ -11,7 +11,9 @@ import {AppConfigService} from "../../../../services/core/app-config.service";
 import {FooterXl1Component} from "./footer-xl/footer-xl-1/footer-xl-1.component";
 import {FooterXl2Component} from "./footer-xl/footer-xl-2/footer-xl-2.component";
 import {FooterXl3Component} from "./footer-xl/footer-xl-3/footer-xl-3.component";
+import {FooterXl4Component} from "./footer-xl/footer-xl-4/footer-xl-4.component";
 import {BottomNavbar2Component} from "./bottom-navbar-2/bottom-navbar-2.component";
+import {BottomNavbar3Component} from "./bottom-navbar-3/bottom-navbar-3.component";
 import {TagService} from "../../../../services/common/tag.service";
 
 @Component({
@@ -23,7 +25,9 @@ import {TagService} from "../../../../services/common/tag.service";
     FooterXl1Component,
     FooterXl2Component,
     FooterXl3Component,
+    FooterXl4Component,
     BottomNavbar2Component,
+    BottomNavbar3Component,
   ],
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss'

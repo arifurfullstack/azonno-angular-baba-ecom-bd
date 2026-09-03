@@ -1,0 +1,151 @@
+@import "variables";
+
+.footer-4-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 15px;
+
+  @media only screen and (min-width: 768px) {
+    padding: 0 40px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Top strip — white background, contact support left / payment accept right
+// ---------------------------------------------------------------------------
+.footer-4-top {
+  background-color: $color-white;
+  border-top: 1px solid darken($color-white, 10%);
+}
+
+.top-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px 0;
+
+  @media only screen and (min-width: 768px) {
+    flex-direction: row;
+  }
+}
+
+.support-box,
+.payment-box {
+  h3 {
+    font-family: $font-en-primary;
+    font-size: 20px;
+    font-weight: 700;
+    color: $color-black;
+    margin: 0 0 14px;
+    text-align: center;
+
+    @media only screen and (min-width: 768px) {
+      text-align: left;
+    }
+  }
+}
+
+.support-btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+
+  @media only screen and (min-width: 768px) {
+    justify-content: flex-start;
+  }
+}
+
+.support-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background-color: #3CBE4B;
+  border-radius: 6px;
+  text-decoration: none;
+  font-family: $font-en-primary;
+  font-size: 14px;
+  font-weight: 700;
+  color: $color-white;
+  line-height: 1;
+  transition: filter 0.3s ease-in-out;
+
+  &:hover {
+    filter: brightness(1.08);
+  }
+}
+
+.payment-logos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+
+  @media only screen and (min-width: 768px) {
+    justify-content: flex-end;
+  }
+
+  img {
+    height: 28px;
+    width: auto;
+    display: block;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Bottom bar — theme primary color, centered quick links + copyright
+// ---------------------------------------------------------------------------
+.footer-4-bottom {
+  background-color: $color-primary;
+}
+
+.bottom-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 0;
+  text-align: center;
+
+  h4 {
+    font-family: $font-en-primary;
+    font-size: 18px;
+    font-weight: 700;
+    color: $color-white;
+    margin: 0;
+  }
+}
+
+.quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 24px;
+
+  a {
+    font-family: $font-en-primary;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: $color-white;
+    text-decoration: none;
+    transition: opacity 0.3s ease-in-out;
+
+    &:hover {
+      opacity: 0.85;
+    }
+  }
+}
+
+.copyright {
+  font-family: $font-en-primary;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}

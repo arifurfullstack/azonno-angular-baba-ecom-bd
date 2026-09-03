@@ -94,7 +94,8 @@ export class TagProductsComponent implements OnInit, OnDestroy {
 
   private getSettingData() {
     const themeViewSettings: ThemeViewSetting[] = this.appConfigService.getSettingData('themeViewSettings');
-    this.productCardViews = themeViewSettings.find(f => f.type == 'productCardViews').value.join();
+    // Stored settings may lack this entry — fall back to the catalog default.
+    this.productCardViews = themeViewSettings.find(f => f.type == 'productCardViews')?.value?.join() || 'Product Card 1';
   }
 
   setupIntersectionObserver() {

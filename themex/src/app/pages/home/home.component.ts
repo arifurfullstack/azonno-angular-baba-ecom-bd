@@ -19,11 +19,14 @@ import {TagProductsComponent} from "./tag-products/tag-products.component";
 import {ShopInformation} from "../../interfaces/common/shop-information.interface";
 import {ShopInformationService} from "../../services/common/shop-information.service";
 import {SeoPageService} from "../../services/common/seo-page.service";
+import {SettingService} from "../../services/common/setting.service";
 import {FooterXl1Component} from "../../shared/components/core/footer/footer-xl/footer-xl-1/footer-xl-1.component";
 import {FooterXl2Component} from "../../shared/components/core/footer/footer-xl/footer-xl-2/footer-xl-2.component";
 import {FooterXl3Component} from "../../shared/components/core/footer/footer-xl/footer-xl-3/footer-xl-3.component";
+import {FooterXl4Component} from "../../shared/components/core/footer/footer-xl/footer-xl-4/footer-xl-4.component";
 import {BlogComponent} from "./blog/blog.component";
 import {CategoriesComponent} from "./categories/categories.component";
+import {BrandSectionComponent} from "./brand-section/brand-section.component";
 import {ReturnPolicyComponent} from "./return-policy/return-policy.component";
 import {NotificationCardComponent} from "../../shared/components/notification-card/notification-card.component";
 import {UserNotificatinService} from "../../services/common/user-notification.service";
@@ -42,8 +45,10 @@ import {AllProductsComponent} from "./all-products/all-products.component";
     FooterXl1Component,
     FooterXl2Component,
     FooterXl3Component,
+    FooterXl4Component,
     BlogComponent,
     CategoriesComponent,
+    BrandSectionComponent,
     ReturnPolicyComponent,
     NotificationCardComponent,
     NgIf,
@@ -57,6 +62,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   popup: Popup;
   tags: any[] = [];
   shopInfo: ShopInformation;
+  chatLink: any;
 
   // Theme Settings
   showcaseViews: string;
@@ -81,6 +87,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private readonly tagService = inject(TagService);
   private readonly dialog = inject(MatDialog);
   private readonly shopInfoService = inject(ShopInformationService);
+  private readonly settingService = inject(SettingService);
   private readonly seoPageService = inject(SeoPageService);
   private readonly notificationService = inject(UserNotificatinService);
   private readonly platformId = inject(PLATFORM_ID);
@@ -100,6 +107,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       // this.updateMetaData();
       this.getShopInfo();
+      this.getChatLink();
     }
     this.getAllSeoPage();
 
@@ -114,10 +122,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   private getSettingData() {
     const themeViewSettings: ThemeViewSetting[] = this.appConfigService.getSettingData('themeViewSettings');
     this.productViews = themeViewSettings.find(f => f.type == 'productViews')?.value?.join();
-    this.showcaseViews = themeViewSettings.find(f => f.type == 'showcaseViews')?.value?.join();
+    // Stored settings may lack these entries — fall back to catalog defaults.
+    this.showcaseViews = themeViewSettings.find(f => f.type == 'showcaseViews')?.value?.join() || 'Showcase 2';
     this.themeColors = this.appConfigService.getSettingData('themeColors');
     this.footerViews = themeViewSettings.find(f => f.type === 'footerViews')?.value?.join() || '';
-    this.isTagProduct = this.productViews.split(',').includes('Tag');
+    this.isTagProduct = (themeViewSettings.find(f => f.type == 'productViews')?.value ?? []).includes('Tag');
     this.shopId = this.appConfigService.getSettingData('shop');
     this.homeViews = themeViewSettings.find(f => f.type == 'homeViews')?.value?.join();
   }
@@ -137,6 +146,22 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
     });
     this.subscriptions?.push(subscription);
+  }
+
+  /**
+   * Footer 4 support buttons (mobile home renders its own footer instance)
+   * getChatLink()
+   */
+  private getChatLink() {
+    const subscription = this.settingService.getChatLink().subscribe({
+      next: (res) => {
+        this.chatLink = res.data;
+      },
+      error: (err) => {
+        console.log(err);
+      },
+    });
+    this.subscriptions.push(subscription);
   }
 
   private getAllSeoPage() {

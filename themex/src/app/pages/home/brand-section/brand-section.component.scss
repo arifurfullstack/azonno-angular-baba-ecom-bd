@@ -1,0 +1,110 @@
+@import "variables";
+
+.container {
+  margin: 10px auto 0;
+  padding-top: 14px;
+}
+
+.brand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 38px;
+  line-height: 38px;
+
+  h2 {
+    font-size: calc($font-sub-title - 4px);
+    font-family: $font-en-primary;
+    font-weight: 500;
+    color: darken($color-white, 74%);
+    margin-bottom: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.brand-cards {
+  display: flex;
+  gap: 15px;
+  padding-top: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.brand-card {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 150px;
+  height: 90px;
+  padding: 10px;
+  background-color: $color-white;
+  border: 1px solid darken($color-white, 8%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: border-color 0.3s ease-in-out;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .brand-name {
+    font-family: $font-en-primary;
+    font-size: 14px;
+    font-weight: 500;
+    color: darken($color-white, 60%);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &:hover {
+    border-color: $color-primary;
+  }
+}
+
+//for mobile
+@media only screen and (max-width: 599px) {
+  .brand-header {
+    h2 {
+      color: darken($color-white, 93%);
+      font-size: 4.26667vw;
+      font-weight: 700;
+      line-height: 4.8vw;
+    }
+  }
+
+  .brand-cards {
+    gap: 9px;
+  }
+
+  .brand-card {
+    width: 40vw;
+    height: 24vw;
+    border-radius: 8px;
+    padding: 8px;
+
+    .brand-name {
+      font-size: 3.2vw;
+    }
+  }
+
+  .container {
+    width: 92%;
+    margin: 0 auto !important;
+    padding: 0 3vw 2.6vw 3vw;
+    background-color: $color-white;
+    border-radius: 10px;
+  }
+}

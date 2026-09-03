@@ -39,6 +39,7 @@ import {ProductCard4Component} from "../../shared/components/product-cards/produ
 import {ProductCard3Component} from "../../shared/components/product-cards/product-card-3/product-card-3.component";
 import {ProductCard1Component} from "../../shared/components/product-cards/product-card-1/product-card-1.component";
 import {ProductCard2Component} from "../../shared/components/product-cards/product-card-2/product-card-2.component";
+import {ProductCard5Component} from "../../shared/components/product-cards/product-card-5/product-card-5.component";
 
 @Component({
   selector: 'app-product-details2',
@@ -56,7 +57,8 @@ import {ProductCard2Component} from "../../shared/components/product-cards/produ
     ProductCard4Component,
     ProductCard3Component,
     ProductCard1Component,
-    ProductCard2Component
+    ProductCard2Component,
+    ProductCard5Component
   ]
 })
 export class ProductDetails2Component implements OnInit, OnDestroy {

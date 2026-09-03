@@ -1,0 +1,26 @@
+.category-card {
+  flex: 0 0 auto;
+
+  .img-thumb {
+    width: 150px;
+    border-radius: 12px;
+  }
+}
+
+//for mobile
+@media only screen and (max-width: 599px) {
+  .category-card {
+    .img-thumb {
+      width: 38vw;
+
+      ngx-skeleton-loader {
+        ::ng-deep {
+          div {
+            width: 38vw !important;
+            height: 40vw !important;
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="32" viewBox="0 0 96 32" role="img" aria-label="Binance Pay">
+  <rect width="96" height="32" rx="6" fill="#F0B90B"/>
+  <g fill="#FFFFFF">
+    <rect x="14" y="14.6" width="6.8" height="6.8" transform="rotate(45 17.4 18)"/>
+    <rect x="10" y="10.6" width="2.9" height="2.9" transform="rotate(45 11.45 12.05)"/>
+    <rect x="22" y="10.6" width="2.9" height="2.9" transform="rotate(45 23.45 12.05)"/>
+    <rect x="10" y="22.6" width="2.9" height="2.9" transform="rotate(45 11.45 24.05)"/>
+    <rect x="22" y="22.6" width="2.9" height="2.9" transform="rotate(45 23.45 24.05)"/>
+  </g>
+  <text x="56" y="21.5" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">BINANCE</text>
+</svg>
