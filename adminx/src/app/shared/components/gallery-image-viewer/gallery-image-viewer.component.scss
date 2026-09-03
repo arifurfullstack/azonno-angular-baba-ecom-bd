@@ -38,7 +38,9 @@
 
   img {
     max-width: 100%;
-    max-height: 100%;
+    // the dialog's max-height:90% resolves against an auto-height parent,
+    // so a tall demo screenshot could overflow the viewport — cap it in vh.
+    max-height: 90vh;
     border-radius: 8px;
   }
 
