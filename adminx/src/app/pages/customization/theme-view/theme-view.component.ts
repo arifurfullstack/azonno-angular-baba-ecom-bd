@@ -20,196 +20,13 @@ import {Router} from "@angular/router";
 export class ThemeViewComponent implements OnInit, OnDestroy {
 
   // Store Data
-  protected themeCustomOptions: any[] = [
-    {
-      "name": "Header Section",
-      "type": "headerViews",
-      "selectType": "single",
-      "value": [
-        {
-          "name": "Header 1",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-15-at-3-ba10e.webp?resolution=2876_272",
-          "note": "",
-          "isDefault": true
-        },
-        {
-          "name": "Header 2",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-15-at-3-b5810.webp?resolution=2880_288",
-          "note": "",
-          "isDefault": false
-        }
-      ]
-    },
-    {
-      "name": "Showcase Section",
-      "type": "showcaseViews",
-      "selectType": "single",
-      "value": [
-        {
-          "name": "Showcase 2",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-15-at-3-b5c10.webp?resolution=2844_718",
-          "note": "",
-          "isDefault": true
-        },
-        {
-          "name": "Showcase 3",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-15-at-3-8b79.webp?resolution=2770_856",
-          "note": "",
-          "isDefault": false
-        }
-      ]
-    },
-    {
-      "name": "Category Section",
-      "type": "categoryViews",
-      "selectType": "single",
-      "value": [
-        {
-          "name": "Category 1",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-15-at-3-9f0c.webp?resolution=2764_418",
-          "note": "",
-          "isDefault": true
-        },
-        {
-          "name": "Category 2",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-15-at-3-9837.webp?resolution=2232_968",
-          "note": "",
-          "isDefault": false
-        },
-        {
-          "name": "Category 3",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-20-at-8-c60c.webp?resolution=1389_214",
-          "note": "",
-          "isDefault": false
-        },
-        {
-          "name": "None",
-          "image": "https://cdn.saleecom.com/upload/images/no-category-757d.webp?resolution=500_500",
-          "note": "",
-          "isDefault": false
-        }
-      ]
-    },
-    {
-      "name": "Brand Section",
-      "type": "brandViews",
-      "selectType": "single",
-      "value": [
-        {
-          "name": "None",
-          "image": "https://cdn.saleecom.com/upload/images/no-brand-8272.webp?resolution=522_469",
-          "note": "",
-          "isDefault": true
-        },
-        {
-          "name": "Brand 1",
-          "image": "https://cdn.saleecom.com/upload/images/no-brand-8272.webp?resolution=522_469",
-          "note": "",
-          "isDefault": false
-        }
-      ]
-    },
-    {
-      "name": "Product Section",
-      "type": "productViews",
-      "selectType": "multiple",
-      "value": [
-        {
-          "name": "Tag",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-15-at-3-afd4.webp?resolution=2212_744",
-          "note": "",
-          "isDefault": true
-        }
-      ]
-    },
-    {
-      "name": "Product Card",
-      "type": "productCardViews",
-      "selectType": "single",
-      "value": [
-        {
-          "name": "Product Card 1",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-15-at-3-d99f.webp?resolution=2734_736",
-          "note": "",
-          "isDefault": false
-        },
-        {
-          "name": "Product Card 2",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-15-at-3-10070.webp?resolution=2728_788",
-          "note": "",
-          "isDefault": false
-        },
-        {
-          "name": "Product Card 3",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-15-at-3-4780.webp?resolution=2738_726",
-          "note": "",
-          "isDefault": true
-        },
-        {
-          "name": "Product Card 4",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-03-20-at-8-89b2.webp?resolution=1376_388",
-          "note": "",
-          "isDefault": false
-        }
-      ]
-    },
-    {
-      "name": "Bottom Nav",
-      "type": "bottomNavViews",
-      "selectType": "single",
-      "value": [
-        {
-          "name": "Bottom Nav 1",
-          "image": "https://cdn.saleecom.com/upload/images/b-1-36f7.webp?resolution=402_60",
-          "note": "",
-          "isDefault": true
-        },
-        {
-          "name": "Bottom Nav 2",
-          "image": "https://cdn.saleecom.com/upload/images/b-2-19c5.webp?resolution=407_98",
-          "note": "",
-          "isDefault": false
-        },
-        {
-          "name": "Bottom Nav 3",
-          "image": "https://cdn.saleecom.com/upload/images/b-3-f458.webp?resolution=403_63",
-          "note": "",
-          "isDefault": false
-        }
-      ]
-    },
-    {
-      "name": "Footer Section",
-      "type": "footerViews",
-      "selectType": "single",
-      "value": [
-        {
-          "name": "Footer 1",
-          "image": "https://cdn.saleecom.com/upload/images/footer-1-3692.webp?resolution=1475_322",
-          "note": "",
-          "isDefault": true
-        },
-        {
-          "name": "Footer 2",
-          "image": "https://cdn.saleecom.com/upload/images/footer-2-f55d.webp?resolution=1540_340",
-          "note": "",
-          "isDefault": false
-        },
-        {
-          "name": "Footer 3",
-          "image": "https://cdn.saleecom.com/upload/images/footer-3-f863.webp?resolution=1634_359",
-          "note": "",
-          "isDefault": false
-        },
-        {
-          "name": "Footer 4",
-          "image": "https://cdn.saleecom.com/upload/images/screenshot-2025-07-19-110709-3f8a.webp?resolution=1904_274",
-          "note": "",
-          "isDefault": false
-        }
-      ]
-    }
-  ];
+  // Loaded from apix's theme catalog (GET /api/setting/theme-catalog, with a
+  // bundled assets/theme-catalog.json fallback) — no longer hardcoded here.
+  // Empty until loadCatalog() resolves; Save stays disabled while empty so a
+  // catalog failure can never POST themeViewSettings: [] and wipe saved views.
+  protected themeCustomOptions: any[] = [];
+  private catalogLoaded = false;
+  private settingsLoaded = false;
   protected themeLanguageOptions: any[] = [
     {
       "name": "English",
@@ -254,8 +71,46 @@ export class ThemeViewComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
 
   async ngOnInit() {
+    this.loadCatalog();
     this.getSetting();
     this.setPageData();
+  }
+
+  /**
+   * Theme Catalog
+   * loadCatalog() + tryFinish()
+   */
+  private loadCatalog(): void {
+    const subscription = this.settingService.getThemeCatalog().subscribe({
+      next: (sections: any[]) => {
+        this.themeCustomOptions = Array.isArray(sections) ? sections : [];
+        this.catalogLoaded = true;
+        this.tryFinish();
+      },
+      error: err => {
+        // Both the API and the bundled JSON fallback failed — leave the
+        // catalog empty; the Save button stays disabled and addSetting()
+        // guards against wiping stored views.
+        this.catalogLoaded = true;
+        this.tryFinish();
+        console.log(err);
+      }
+    });
+    this.subscriptions.push(subscription);
+  }
+
+  /**
+   * The catalog and the stored settings arrive from independent requests
+   * (either may complete first — getSetting is shareReplay-memoized and can
+   * emit synchronously). Selections can only be initialized once both are in.
+   */
+  private tryFinish(): void {
+    if (!this.catalogLoaded || !this.settingsLoaded || !this.settings) {
+      return;
+    }
+    this.addSelectedProperty();
+    this.initializeSelections();
+    this.updateSettings();
   }
 
 
@@ -410,11 +265,9 @@ export class ThemeViewComponent implements OnInit, OnDestroy {
           item.selected = item.value === this.orderLanguage;
         });
 
-
-        // Update With Settings
-        this.addSelectedProperty();
-        this.initializeSelections();
-        this.updateSettings();
+        // Update With Settings (once the catalog is in too — see tryFinish)
+        this.settingsLoaded = true;
+        this.tryFinish();
       },
       error: err => {
         this.isLoading = false;
@@ -425,6 +278,12 @@ export class ThemeViewComponent implements OnInit, OnDestroy {
   }
 
   private addSetting() {
+    // Catalog never loaded (API + bundled fallback both failed) — saving now
+    // would POST themeViewSettings: [] and wipe the shop's stored views.
+    if (!this.themeCustomOptions.length || !this.settings?.themeCustomOptions) {
+      this.uiService.message('Theme catalog unavailable — cannot save theme views right now.', 'warn');
+      return;
+    }
     this.isLoading = true;
 
     const result = this.settings.themeCustomOptions.map((section: any) => ({

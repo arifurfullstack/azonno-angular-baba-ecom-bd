@@ -3,7 +3,7 @@
 
 
     @if(!isLoading) {
-      <button (click)="openConfirmDialog()" mat-raised-button color="primary">
+      <button (click)="openConfirmDialog()" mat-raised-button color="primary" [disabled]="!themeCustomOptions.length">
         <mat-icon>check</mat-icon> Save Changes
       </button>
     } @else {
@@ -118,10 +118,12 @@
         </div>
         <div class="info">
           <h5>{{ item.name }}</h5>
-          <span class="image"  (click)="openGallery($event, item.image)">
-            <mat-icon>visibility</mat-icon>
-            View demo
-          </span>
+          @if (item.image) {
+            <span class="image"  (click)="openGallery($event, item.image)">
+              <mat-icon>visibility</mat-icon>
+              View demo
+            </span>
+          }
 <!--          <a href="javascript:" class="manage-link">-->
 <!--            Manage your {{ opt.name.toLowerCase() }} view from here-->
 <!--            <span class="material-icons">open_in_new</span>-->

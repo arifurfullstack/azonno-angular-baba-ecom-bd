@@ -4,7 +4,7 @@ import {environment} from '../../../environments/environment';
 import {Setting} from '../../interfaces/common/setting.interface';
 import {ResponsePayload} from "../../interfaces/core/response-payload.interface";
 import { Observable } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
+import { catchError, map, shareReplay } from 'rxjs/operators';
 
 const API_SETTING_INFO = environment.apiBaseLink + '/api/setting/';
 
@@ -15,6 +15,9 @@ const API_SETTING_INFO = environment.apiBaseLink + '/api/setting/';
 export class SettingService {
 
   private settingCache = new Map<string, Observable<any>>();
+
+  // Single theme-catalog observable shared by every subscriber (memoized).
+  private themeCatalog$: Observable<any[]> | null = null;
 
   constructor(
     private httpClient: HttpClient
@@ -64,6 +67,24 @@ export class SettingService {
 
   clearSettingCache() {
     this.settingCache.clear();
+  }
+
+  /**
+   * Theme catalog (single source of truth lives in apix:
+   * src/config/theme-catalog.ts — served by GET /api/setting/theme-catalog).
+   * Falls back to the bundled assets/theme-catalog.json when the API is
+   * unreachable, so the theme-view page still works during deploys.
+   * catchError sits INSIDE the pipe so shareReplay can never replay an error.
+   */
+  getThemeCatalog(): Observable<any[]> {
+    if (!this.themeCatalog$) {
+      this.themeCatalog$ = this.httpClient.get<ResponsePayload>(API_SETTING_INFO + 'theme-catalog').pipe(
+        map(res => (res as any)?.data ?? []),
+        catchError(() => this.httpClient.get<any[]>('assets/theme-catalog.json')),
+        shareReplay(1),
+      );
+    }
+    return this.themeCatalog$;
   }
 
   testStorageConnection(provider: string, config: any) {
