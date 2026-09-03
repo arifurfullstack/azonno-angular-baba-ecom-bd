@@ -127,6 +127,7 @@ export class ShopService {
     addVendorAndShopDto: AddVendorAndShopDto,
   ): Promise<ResponsePayload> {
     try {
+      this.normalizeHostFields(addVendorAndShopDto);
       const {
         name,
         username,
@@ -369,6 +370,7 @@ export class ShopService {
     addShopDto: AddShopDto,
   ): Promise<ResponsePayload> {
     try {
+      this.normalizeHostFields(addShopDto);
       const {
         theme,
         domain,
@@ -526,7 +528,13 @@ export class ShopService {
       .lean();
 
     if (!shop) {
-      const domainRegex = new RegExp('^' + hostname + '(:[0-9]+)?/?$');
+      // Case-insensitive fallback (also tolerates a legacy row saved with
+      // uppercase letters before writes were normalized) plus the
+      // domain:port form local development uses.
+      const domainRegex = new RegExp(
+        '^' + hostname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(:[0-9]+)?/?$',
+        'i',
+      );
       shop = await this.shopModel
         .findOne({
           $or: [{ domain: domainRegex }, { subDomain: domainRegex }],
@@ -547,6 +555,24 @@ export class ShopService {
    * whole-collection countDocuments() that used to run on every
    * unknown-domain lookup.
    */
+  /**
+   * Hostnames are case-insensitive and getSettingByDomain resolves them
+   * lowercased (www/port/slash stripped). Every write path must store the
+   * same canonical form or the domain stops matching its shop.
+   */
+  private normalizeHostFields(dto: any): void {
+    for (const field of ['domain', 'subDomain']) {
+      const value = dto?.[field];
+      if (typeof value === 'string' && value.trim() !== '') {
+        dto[field] = value
+          .trim()
+          .toLowerCase()
+          .replace(/^www\./, '')
+          .replace(/\/+$/, '');
+      }
+    }
+  }
+
   private async isSingleShopMode(): Promise<boolean> {
     return this.ttlCache.wrap(
       'singleShopMode',
@@ -800,6 +826,11 @@ export class ShopService {
       if (!foundShop) {
         throw new BadRequestException('Shop not found by the given ID');
       }
+
+      // Hostnames are case-insensitive — getSettingByDomain always looks
+      // them up lowercased, so an admin saving "MyShop.com" here would
+      // silently break that domain's storefront resolution.
+      this.normalizeHostFields(updateShopDto);
 
       const updatedShop = await this.shopModel.findByIdAndUpdate(
         id,
