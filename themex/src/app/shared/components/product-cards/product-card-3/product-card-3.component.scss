@@ -143,6 +143,18 @@
   display: inline-flex;
   justify-content: center;
   overflow: hidden;
+
+  // Desktop had no img rule at all (only the <=599px block below), so the
+  // product image rendered unconstrained and got clipped by overflow:hidden
+  // at an arbitrary crop. Same constraint the mobile block applies.
+  img {
+    height: 100%;
+    width: 100%;
+    display: inline-block;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: cover;
+  }
 }
 
 .card-image-box {
