@@ -16,6 +16,7 @@ import {
 import { ResponsePayload } from 'src/interfaces/response-payload.interface';
 import { AddSettingDto } from './dto/setting.dto';
 import { SettingService } from './setting.service';
+import { THEME_CATALOG } from '../../../config/theme-catalog';
 import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
 import { UserAuthGuard } from '../../user/guards/user-auth.guard';
 import { VendorAuthGuard } from '../../vendor/guards/vendor-auth.guard';
@@ -25,6 +26,19 @@ export class SettingController {
   private logger = new Logger(SettingController.name);
 
   constructor(private settingService: SettingService) {}
+
+  /**
+   * Public theme catalog — single source of truth the admin theme-view page
+   * renders from (same payload is used to validate themeViewSettings writes).
+   * No shop pipe on purpose: the catalog is identical for every shop, and the
+   * admin auth interceptor appends ?shop=<id> to every request.
+   */
+  @Version(VERSION_NEUTRAL)
+  @Header('Cache-Control', 'public, max-age=3600')
+  @Get('/theme-catalog')
+  getThemeCatalog(): ResponsePayload {
+    return { success: true, message: 'Success', data: THEME_CATALOG };
+  }
 
   /**
    * addSetting

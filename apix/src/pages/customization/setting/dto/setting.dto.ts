@@ -25,6 +25,11 @@ export class AddSettingDto {
 
   @IsOptional()
   storageSetting: any;
+
+  // Structure is validated against THEME_CATALOG in SettingService.addSetting
+  // (array of {type: string, value: string[]}).
+  @IsOptional()
+  themeViewSettings: any;
 }
 
 export class FilterSettingDto {

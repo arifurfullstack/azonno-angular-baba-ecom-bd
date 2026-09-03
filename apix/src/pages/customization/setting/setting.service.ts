@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -13,6 +14,7 @@ import { Setting } from './interface/setting.interface';
 import { User } from '../../user/interfaces/user.interface';
 import { Order } from '../../order/interfaces/order.interface';
 import { MAX_NEW_REGISTRATION_ORDER_COUNT } from '../../../config/global-variables';
+import { validateThemeViewSettings } from '../../../config/theme-catalog';
 import { Shop } from '../../shop/interfaces/shop.interface';
 import { ScriptService } from '../../../shared/script/script.service';
 import { ReBuildScript } from '../../../shared/script/interfaces/build-script.interface';
@@ -46,6 +48,16 @@ export class SettingService {
     shop: string,
     addSettingDto: AddSettingDto,
   ): Promise<ResponsePayload> {
+    // Validate BEFORE the try block — the catch below converts everything to
+    // a 500, which would hide an invalid payload from the admin UI.
+    if (addSettingDto.themeViewSettings !== undefined) {
+      const themeError = validateThemeViewSettings(
+        addSettingDto.themeViewSettings,
+      );
+      if (themeError) {
+        throw new BadRequestException(themeError);
+      }
+    }
     try {
       const { needRebuild } = addSettingDto;
       const settingData = await this.settingModel.findOne({ shop: shop });
