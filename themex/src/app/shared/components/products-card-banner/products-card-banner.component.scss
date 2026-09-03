@@ -2,5 +2,7 @@ img {
     width: 100%;
     max-height: 350px;
     height: 100%;
+    // without this a tall banner gets squashed when max-height clamps it
+    object-fit: cover;
     border-radius: 15px;
 }

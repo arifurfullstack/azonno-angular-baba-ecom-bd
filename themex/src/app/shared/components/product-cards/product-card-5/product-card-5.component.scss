@@ -180,6 +180,17 @@
   display: inline-flex;
   justify-content: center;
   overflow: hidden;
+
+  // Desktop had no img rule (only the <=599px block had one), so the
+  // product image rendered unconstrained and was clipped by overflow:hidden.
+  img {
+    height: 100%;
+    width: 100%;
+    display: inline-block;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: cover;
+  }
 }
 
 .card-image-box {
