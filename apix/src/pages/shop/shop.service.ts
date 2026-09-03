@@ -557,8 +557,10 @@ export class ShopService {
    */
   /**
    * Hostnames are case-insensitive and getSettingByDomain resolves them
-   * lowercased (www/port/slash stripped). Every write path must store the
-   * same canonical form or the domain stops matching its shop.
+   * lowercased (www/port/slash stripped). Users paste full URLs from the
+   * browser bar ("https://MyShop.com/products"), so also strip the scheme
+   * and anything after the host before storing. Every write path must
+   * store this canonical form or the domain stops matching its shop.
    */
   private normalizeHostFields(dto: any): void {
     for (const field of ['domain', 'subDomain']) {
@@ -567,8 +569,12 @@ export class ShopService {
         dto[field] = value
           .trim()
           .toLowerCase()
+          // Strip a leading scheme (http://, https://, …). The "://" guard
+          // keeps "localhost:4220" (scheme-less host:port) intact.
+          .replace(/^[a-z0-9+.-]+:\/\//, '')
           .replace(/^www\./, '')
-          .replace(/\/+$/, '');
+          // Keep host(:port) only — drop any pasted path/query/hash.
+          .split(/[/?#]/)[0];
       }
     }
   }

@@ -20,7 +20,11 @@
             <div class="user-name">
               <mat-form-field appearance="outline">
                 <mat-label>Domain</mat-label>
-                <input matInput type="text" placeholder="Enter Domain" formControlName="domain">
+                <!-- Hostname only, lowercase — stop mobile keyboards from
+                     auto-capitalizing what is typed here. -->
+                <input matInput type="text" placeholder="myshop.com"
+                       formControlName="domain"
+                       autocapitalize="off" autocorrect="off" spellcheck="false">
                 <mat-error></mat-error>
               </mat-form-field>
             </div>
