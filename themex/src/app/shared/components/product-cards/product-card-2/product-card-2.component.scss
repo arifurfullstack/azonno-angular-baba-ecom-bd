@@ -201,17 +201,27 @@
   gap: 13px;
 }
 
+// NOTE: this block used to declare height/width twice — `189px` first,
+// then `100%` — so the browser kept the last declaration and the img had
+// no size constraint on desktop. Large portrait uploads then stretched
+// the card to their natural size. Keep one set of properties and size the
+// img itself (object-fit belongs on the img, not the box), like card 1.
 .card-image-box {
   height: 189px;
-  width: 189px;
+  width: 100%;
   align-items: center;
   display: inline-flex;
   justify-content: center;
   overflow: hidden;
-  height: 100%;
-  width: 100%;
-  display: block;
-  object-fit: cover;
+
+  img {
+    height: 100%;
+    width: 100%;
+    display: inline-block;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: cover;
+  }
 }
 
 .product-category {
@@ -419,6 +429,7 @@
       display: inline-block;
       max-height: 100%;
       max-width: 100%;
+      object-fit: cover;
     }
   }
 }
