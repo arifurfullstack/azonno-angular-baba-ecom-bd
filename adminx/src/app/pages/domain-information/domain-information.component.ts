@@ -100,26 +100,38 @@ export class DomainInformationComponent implements OnInit, OnDestroy {
   }
 
   private updateDomainInformation() {
-    // Hostnames are case-insensitive and the storefront resolves them
-    // lowercased — send a normalized domain so the saved value always
-    // matches the lookup.
     const {domain, ...rest} = this.dataForm.value;
-    const payload = {
-      ...rest,
-      domain: typeof domain === 'string'
-        ? domain.trim().toLowerCase().replace(/^www\./, '').replace(/\/+$/, '')
-        : domain,
-    };
+    const payload = {...rest, domain: this.normalizeDomain(domain)};
     this.shopService.updateShopById(this.shop._id, payload)
       .subscribe({
         next: () => {
           this.uiService.message('Domain Information updated successfully', 'success');
+          // Re-fetch so the field shows the canonical form the API stored
+          // (pasted "https://MyShop.com/" reads back as "myshop.com").
+          this.getShopById();
         },
         error: (err) => {
           console.error(err);
           this.uiService.message('Failed to update domain information', 'warn');
         }
       });
+  }
+
+  /**
+   * Users paste the full URL from the browser bar ("https://MyShop.com/"),
+   * and mobile keyboards auto-capitalize. Send only the bare lowercase
+   * host so the stored value always matches the storefront lookup.
+   */
+  private normalizeDomain(domain: string | null): string | null {
+    if (typeof domain !== 'string' || domain.trim() === '') {
+      return domain;
+    }
+    return domain
+      .trim()
+      .toLowerCase()
+      .replace(/^[a-z0-9+.-]+:\/\//, '')
+      .replace(/^www\./, '')
+      .split(/[/?#]/)[0];
   }
 
 
