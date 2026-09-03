@@ -100,7 +100,17 @@ export class DomainInformationComponent implements OnInit, OnDestroy {
   }
 
   private updateDomainInformation() {
-    this.shopService.updateShopById(this.shop._id, this.dataForm.value)
+    // Hostnames are case-insensitive and the storefront resolves them
+    // lowercased — send a normalized domain so the saved value always
+    // matches the lookup.
+    const {domain, ...rest} = this.dataForm.value;
+    const payload = {
+      ...rest,
+      domain: typeof domain === 'string'
+        ? domain.trim().toLowerCase().replace(/^www\./, '').replace(/\/+$/, '')
+        : domain,
+    };
+    this.shopService.updateShopById(this.shop._id, payload)
       .subscribe({
         next: () => {
           this.uiService.message('Domain Information updated successfully', 'success');
