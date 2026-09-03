@@ -230,7 +230,10 @@ export class ThemeViewComponent implements OnInit, OnDestroy {
     tertiary: '#f85606',
   };
   searchHints: string;
-  isLoading: boolean = false;
+  // Starts true: the Save button must stay in its loader state until the
+  // stored settings arrive — clicking Save before that would hit
+  // `this.settings.themeCustomOptions.map(...)` on undefined.
+  isLoading: boolean = true;
   storedSettings: any;
   settings: any;
 
@@ -290,10 +293,15 @@ export class ThemeViewComponent implements OnInit, OnDestroy {
   }
 
   // Validate color code input
+  // NOTE: this used to read/write `this[colorType]` ("this.primaryColor"),
+  // a property that does not exist on the component — the check never saw
+  // the real value and garbage like "ZZZ" was saved straight to the DB,
+  // silently breaking the storefront CSS variables. Map to themeColors key.
   validateColorCode(colorType: 'primaryColor' | 'secondaryColor' | 'tertiaryColor'): void {
+    const key = colorType.replace('Color', '') as 'primary' | 'secondary' | 'tertiary';
     const hexRegex = /^#[0-9A-Fa-f]{6}$/;
-    if (!hexRegex.test(this[colorType])) {
-      this[colorType] = '#000000'; // Reset to black if invalid
+    if (!hexRegex.test(this.themeColors[key])) {
+      this.themeColors[key] = '#000000'; // Reset to black if invalid
     }
   }
 
@@ -315,11 +323,13 @@ export class ThemeViewComponent implements OnInit, OnDestroy {
   }
 
   private initializeSelections(): void {
-    this.settings.themeViewSettings.forEach((setting: any) => {
+    // themeViewSettings has no DB default — a shop that never saved theme
+    // settings gets undefined here, which used to crash the whole page.
+    (this.settings.themeViewSettings ?? []).forEach((setting: any) => {
       const section = this.themeCustomOptions.find((opt) => opt.type === setting.type);
       if (section) {
         section.value.forEach((item: any) => (item.selected = false));
-        setting.value.forEach((settingItem: string) => {
+        (setting.value ?? []).forEach((settingItem: string) => {
           const match = section.value.find((item: any) => item.name === settingItem);
           if (match) {
             match.selected = true;
